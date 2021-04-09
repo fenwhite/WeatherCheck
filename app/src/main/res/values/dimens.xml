@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="normal_margin">15dp</dimen>
+    <dimen name="normal_test_size">10sp</dimen>
+    <dimen name="title">20sp</dimen>
+    <dimen name="icon">20dp</dimen>
+
+    <dimen name="oval_height">100dp</dimen>
+    <dimen name="oval_width">200dp</dimen>
+    <dimen name="sun_line_padding">40dp</dimen>
+    <dimen name="sun_line_offset">98dp</dimen>
+    <dimen name="sun_raise_label_text_width">35dp</dimen>
+    <dimen name="line_length">300dp</dimen>
+
+    <dimen name="btn_to15d_radius">20dp</dimen>
+
+    <dimen name="forecast_day_height">90dp</dimen>
+    <dimen name="forecast_day_item_height">30dp</dimen>
+
+    <dimen name="label_text_top_margin">5dp</dimen>
+    <dimen name="label_text_width">95dp</dimen>
+    <dimen name="label_text_size">10sp</dimen>
+</resources>

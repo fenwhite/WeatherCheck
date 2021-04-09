@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="15dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical">
+
+        <com.android.myfirstapp.view.widget.CircleProgressView
+            android:id="@+id/aqi_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:progress_color="#39C5BB"
+            app:progress_max="500"
+            app:progress_radius="60dp"
+            app:progress_width="5dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <com.android.myfirstapp.view.widget.LabelText
+            android:id="@+id/primary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="5dp"
+            app:text_size="15sp"
+            app:label="主要污染物"
+            app:label_width="100dp"/>
+        <com.android.myfirstapp.view.widget.LabelText
+            android:id="@+id/pm25"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/label_text_top_margin"
+            app:text_size="@dimen/label_text_size"
+            app:label="pm2.5"
+            app:label_width="@dimen/label_text_width"/>
+        <com.android.myfirstapp.view.widget.LabelText
+            android:id="@+id/pm10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/label_text_top_margin"
+            app:text_size="@dimen/label_text_size"
+            app:label="pm10"
+            app:label_width="@dimen/label_text_width"/>
+        <com.android.myfirstapp.view.widget.LabelText
+            android:id="@+id/SO2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/label_text_top_margin"
+            app:text_size="@dimen/label_text_size"
+            app:label="SO₂"
+            app:label_width="@dimen/label_text_width"/>
+
+    </LinearLayout>
+
+</LinearLayout>

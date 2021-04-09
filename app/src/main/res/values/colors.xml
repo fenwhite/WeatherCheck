@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="watermelon">#ff4757</color>
+    <color name="wild_watermelon">#ff6b81</color>
+    <color name="coral">#ff7f50</color>
+    <color name="orange">#ffa502</color>
+    <color name="peace">#a4b0be</color>
+    <color name="bay_wharf">#747d8c</color>
+    <color name="city_lights">#dfe4ea</color>
+    <color name="bright_greek">#3742fa</color>
+    <color name="fresh_blue_sky">#70a1ff</color>
+
+    <color name="colorPrimary">#7bed9f</color>
+    <color name="colorPrimaryDark">#2ed573</color>
+    <color name="windowBackground">#f1f2f6</color>
+    <color name="colorAccent">#03DAC5</color>
+
+    <color name="forecastBackground">#8000</color>
+    <color name="forecastFront">#fff</color>
+
+    <color name="sun_line">#E8747D8C</color>
+    <color name="sun_track_oval">#C3747D8C</color>
+    <color name="sun_track_track">@color/orange</color>
+</resources>

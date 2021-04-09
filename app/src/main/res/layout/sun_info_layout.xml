@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="@dimen/normal_margin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.android.myfirstapp.view.widget.SunTrack
+        android:id="@+id/sun_track"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:line_length="@dimen/line_length"
+        app:oval_color="@color/sun_track_oval"
+        app:oval_height="@dimen/oval_height"
+        app:oval_width="@dimen/oval_width"
+        app:track_color="@color/sun_track_track" />
+
+    <com.android.myfirstapp.view.widget.LabelText
+        android:id="@+id/sun_raise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sun_track"
+        android:layout_toLeftOf="@id/moon_state"
+        android:layout_marginRight="30dp"
+        app:text_size="@dimen/normal_test_size"
+        app:label_width="@dimen/sun_raise_label_text_width"
+        app:value="5:43"
+        app:label="日出"
+        android:layout_marginEnd="30dp"
+        android:layout_toStartOf="@id/moon_state" />
+
+    <TextView
+        android:id="@+id/moon_state"
+        android:layout_width="65dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/sun_track"
+        android:gravity="center_horizontal"
+        android:textAlignment="center"
+        android:textSize="@dimen/normal_test_size"/>
+
+    <com.android.myfirstapp.view.widget.LabelText
+        android:id="@+id/sun_set"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sun_track"
+        android:layout_toRightOf="@id/moon_state"
+        android:layout_marginLeft="30dp"
+        app:label_width="@dimen/sun_raise_label_text_width"
+        app:text_size="@dimen/normal_test_size"
+        app:label="日落"
+        app:value="18:21"
+        android:layout_toEndOf="@id/moon_state"
+        android:layout_marginStart="30dp" />
+
+</RelativeLayout>

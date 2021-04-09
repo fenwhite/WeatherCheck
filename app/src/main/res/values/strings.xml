@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">天气查询</string>
+
+    <string name="notifyTitle">提示</string>
+    <string name="notifyMsg">当前应用缺少必要权限。\n\n请点击\"设置\"-\"权限\"-打开所需权限。</string>
+    <string name="function_not_accomplish">该功能まだ駄目ですよ~</string>
+    <string name="setting">设置</string>
+    <string name="cancel">取消</string>
+
+    <string name="forecast15_title">未来15天趋势预报</string>
+
+    <string name="net_fail">获取信息失败，请检查网络</string>
+
+    <string name="max_chart_ling">最高温度曲线</string>
+    <string name="min_chart_ling">最低温度曲线</string>
+
+    <string name="city_manage">城市管理</string>
+
+    <string name="search_hint">请输入城市名称</string>
+
+    <string name="defaultPicUrl">https://mfiles.alphacoders.com/894/thumb-894710.png</string>
+</resources>

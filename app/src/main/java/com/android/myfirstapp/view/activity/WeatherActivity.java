@@ -40,6 +40,7 @@ import com.android.myfirstapp.bean.SunMoon;
 import com.android.myfirstapp.bean.Weather;
 import com.android.myfirstapp.utils.DateUtils;
 import com.android.myfirstapp.utils.SPUtils;
+import com.android.myfirstapp.utils.WeatherHandlerUtils;
 import com.android.myfirstapp.view.widget.CircleProgressView;
 import com.android.myfirstapp.view.widget.LabelText;
 import com.android.myfirstapp.view.widget.SunTrack;
@@ -178,10 +179,10 @@ public class WeatherActivity extends AppCompatActivity {
         drawer = findViewById(R.id.drawer_layout);
         swipeRefresh = findViewById(R.id.swipe_refresh);
         weatherLayout = findViewById(R.id.weather_layout);
-        degree = (TextView)findViewById(R.id.now_degree);
-        elseInfo = (TextView)findViewById(R.id.else_info);
-        regionName = (TextView)findViewById(R.id.region_name);
-        updateTime = (TextView)findViewById(R.id.update_time);
+        degree = findViewById(R.id.now_degree);
+        elseInfo = findViewById(R.id.else_info);
+        regionName = findViewById(R.id.region_name);
+        updateTime = findViewById(R.id.update_time);
         forecastDay = findViewById(R.id.forecast_day);
         forecastHour = findViewById(R.id.forecast_hour);
         progress = findViewById(R.id.aqi_progress);
@@ -312,30 +313,20 @@ public class WeatherActivity extends AppCompatActivity {
         QWeather.getWeatherNow(this, city.makeLocation(), new QWeather.OnResultWeatherNowListener() {
             @Override
             public void onError(Throwable throwable) {
-                Log.d(TAG, "get weather now |location:"+city.makeLocation());
                 throwable.printStackTrace();
                 Toast.makeText(WeatherActivity.this,getResources().getString(R.string.net_fail),Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onSuccess(WeatherNowBean weatherNowBean) {
-                if(weatherNowBean!=null && weatherNowBean.getCode().getCode().equals("200")){
-                    BasicInfo basicInfo = new BasicInfo();
-                    WeatherNowBean.NowBaseBean now = weatherNowBean.getNow();
-                    basicInfo.setUpdateTime(now.getObsTime().substring(0,10))
-                             .setCity(city.getName())
-                             .setDistrict(city.getDistrict())
-                             .setText(now.getText())
-                             .setIconCode(now.getIcon())
-                             .setNowTemperature(now.getTemp())
-                             .setWindDir(now.getWindDir())
-                             .setWindScale(now.getWindScale());
+                BasicInfo basicInfo = WeatherHandlerUtils.getWeatherNow(weatherNowBean);
+                if(basicInfo!=null){
+                    basicInfo.setCity(city.getName()).setDistrict(city.getDistrict());
                     weather.setBasicInfo(basicInfo);
                     if(!isFromSearch)
                         SPUtils.saveBean(WeatherActivity.this,"BasicInfo",basicInfo);
-                    basicInfo = null;
-
                     handler.sendEmptyMessage(BASIC_WEATHER);
+                    basicInfo = null;
                 }else{
                     if(weatherNowBean!=null) {
                         Log.d(TAG, "update weather information callback error:" + weatherNowBean.getCode().getCode() + " " + weatherNowBean.getCode().getTxt());
@@ -350,31 +341,24 @@ public class WeatherActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable throwable) {
-                Log.d(TAG, "Weather3D: "+city.makeLocation());
                 throwable.printStackTrace();
                 Toast.makeText(WeatherActivity.this,getResources().getString(R.string.net_fail),Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onSuccess(WeatherDailyBean weatherDailyBean) {
-                if(weatherDailyBean!=null){
-                    if(weatherDailyBean.getCode().getCode().equals("200")){
-                        List<ForecastDay> list = new LinkedList<>();
-                        for (WeatherDailyBean.DailyBean day: weatherDailyBean.getDaily()) {
-                            ForecastDay forecastDay = new ForecastDay();
-                            forecastDay.setDate(day.getFxDate()).setText(day.getTextDay()).setIcon(day.getIconDay());
-                            forecastDay.setMinTemperature(day.getTempMin()).setMaxTemperature(day.getTempMax());
-                            list.add(forecastDay);
-                        }
-                        weather.setForecastDayList(list);
-                        if(!isFromSearch)
-                            SPUtils.putListBean(WeatherActivity.this,"List<ForecastDay>",list);
-                        list = null;
+                List<ForecastDay> list = WeatherHandlerUtils.getWeather3D(weatherDailyBean);
+                if(list.size()>0){
+                    weather.setForecastDayList(list);
+                    if(!isFromSearch)
+                        SPUtils.putListBean(WeatherActivity.this,"List<ForecastDay>",list);
+                    list = null;
 
-                        handler.sendEmptyMessage(FORECAST_DAY);
-                    }else{
+                    handler.sendEmptyMessage(FORECAST_DAY);
+                }else{
+                    if(weatherDailyBean!=null) {
                         Log.d(TAG, "update weather information callback error:" + weatherDailyBean.getCode().getCode() + " " + weatherDailyBean.getCode().getTxt());
-                        Toast.makeText(WeatherActivity.this,weatherDailyBean.getCode().getTxt(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(WeatherActivity.this, weatherDailyBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -428,24 +412,16 @@ public class WeatherActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(AirNowBean airNowBean) {
-                if(airNowBean!=null) {
-                    if (airNowBean.getCode().getCode().equals("200")) {
-                        Aqi aqi = new Aqi();
-                        AirNowBean.NowBean now = airNowBean.getNow();
-                        aqi.setApi(now.getAqi()).setCategory(now.getCategory()).setLevel(now.getLevel());
-                        if("NA".equals(now.getPrimary())){
-                            aqi.setPrimary("无");
-                        }else{
-                            aqi.setPrimary(now.getPrimary());
-                        }
-                        aqi.setPm25(now.getPm2p5()).setPm10(now.getPm10()).setSO2(now.getSo2());
-                        weather.setAqi(aqi);
-                        if(!isFromSearch)
-                            SPUtils.saveBean(WeatherActivity.this,"Aqi",aqi);
-                        aqi = null;
+                Aqi aqi = WeatherHandlerUtils.getAirNow(airNowBean);
+                if(aqi!=null){
+                    weather.setAqi(aqi);
+                    if(!isFromSearch)
+                        SPUtils.saveBean(WeatherActivity.this,"Aqi",aqi);
+                    aqi = null;
 
-                        handler.sendEmptyMessage(AQI_INFO);
-                    } else {
+                    handler.sendEmptyMessage(AQI_INFO);
+                }else{
+                    if(airNowBean!=null){
                         Log.d(TAG, "update weather information callback error:" + airNowBean.getCode().getCode() + " " + airNowBean.getCode().getTxt());
                         Toast.makeText(WeatherActivity.this, airNowBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
                     }
@@ -463,23 +439,16 @@ public class WeatherActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(SunMoonBean sunMoonBean) {
-                if(sunMoonBean!=null){
-                    if(sunMoonBean.getCode().getCode().equals("200")){
-                        SunMoon sunAndMoon = new SunMoon();
-                        SunMoonBean.SunMoonBeanBase obj1 = sunMoonBean.getSunMoonBean();
-                        List<SunMoonBean.MoonPhaseBean> obj2 = sunMoonBean.getMoonPhaseBeanList();
-                        sunAndMoon.setSunRaiseTime(obj1.getSunrise()).setSunSetTime(obj1.getSunset());
-                        sunAndMoon.setMoonRaiseTime(obj1.getMoonRise()).setMoonSetTime(obj1.getMoonSet());
-                        if(obj2.size()>0){
-                            sunAndMoon.setMoonState(obj2.get(0).getName());
-                        }
-                        weather.setSunAndMoon(sunAndMoon);
-                        if(!isFromSearch)
-                            SPUtils.saveBean(WeatherActivity.this,"SunMoon",sunAndMoon);
-                        sunAndMoon = null;
+                SunMoon sunMoon = WeatherHandlerUtils.getSunMoon(sunMoonBean);
+                if(sunMoon!=null){
+                    weather.setSunAndMoon(sunMoon);
+                    if(!isFromSearch)
+                        SPUtils.saveBean(WeatherActivity.this,"SunMoon",sunMoon);
+                    sunMoon = null;
 
-                        handler.sendEmptyMessage(SUN_MOON);
-                    }else{
+                    handler.sendEmptyMessage(SUN_MOON);
+                }else{
+                    if(sunMoonBean!=null){
                         Log.d(TAG, "update weather information callback error:" + sunMoonBean.getCode().getCode() + " " + sunMoonBean.getCode().getTxt());
                         Toast.makeText(WeatherActivity.this, sunMoonBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
                     }
@@ -488,34 +457,34 @@ public class WeatherActivity extends AppCompatActivity {
         });
 
         //
-        QWeather.getWeather15D(this, city.makeLocation(), new QWeather.OnResultWeatherDailyListener() {
-            @Override
-            public void onError(Throwable throwable) {
-                throwable.printStackTrace();
-                Toast.makeText(WeatherActivity.this,getResources().getString(R.string.net_fail),Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onSuccess(WeatherDailyBean weatherDailyBean) {
-                if(weatherDailyBean!=null){
-                    if(weatherDailyBean.getCode().getCode().equals("200")) {
-                        List<ForecastDay> list = new LinkedList<>();
-                        for (WeatherDailyBean.DailyBean day: weatherDailyBean.getDaily()) {
-                            ForecastDay forecastDay = new ForecastDay();
-                            forecastDay.setDate(day.getFxDate()).setText(day.getTextDay()).setIcon(day.getIconDay());
-                            forecastDay.setMinTemperature(day.getTempMin()).setMaxTemperature(day.getTempMax());
-                            list.add(forecastDay);
-                        }
-                        if(!isFromSearch)
-                            SPUtils.putListBean(WeatherActivity.this,"15day",list);
-                        list = null;
-                    }else{
-                        Log.d(TAG, "update weather information callback error:" + weatherDailyBean.getCode().getCode() + " " + weatherDailyBean.getCode().getTxt());
-                        Toast.makeText(WeatherActivity.this, weatherDailyBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });
+//        QWeather.getWeather15D(this, city.makeLocation(), new QWeather.OnResultWeatherDailyListener() {
+//            @Override
+//            public void onError(Throwable throwable) {
+//                throwable.printStackTrace();
+//                Toast.makeText(WeatherActivity.this,getResources().getString(R.string.net_fail),Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onSuccess(WeatherDailyBean weatherDailyBean) {
+//                if(weatherDailyBean!=null){
+//                    if(weatherDailyBean.getCode().getCode().equals("200")) {
+//                        List<ForecastDay> list = new LinkedList<>();
+//                        for (WeatherDailyBean.DailyBean day: weatherDailyBean.getDaily()) {
+//                            ForecastDay forecastDay = new ForecastDay();
+//                            forecastDay.setDate(day.getFxDate()).setText(day.getTextDay()).setIcon(day.getIconDay());
+//                            forecastDay.setMinTemperature(day.getTempMin()).setMaxTemperature(day.getTempMax());
+//                            list.add(forecastDay);
+//                        }
+//                        if(!isFromSearch)
+//                            SPUtils.putListBean(WeatherActivity.this,"15day",list);
+//                        list = null;
+//                    }else{
+//                        Log.d(TAG, "update weather information callback error:" + weatherDailyBean.getCode().getCode() + " " + weatherDailyBean.getCode().getTxt());
+//                        Toast.makeText(WeatherActivity.this, weatherDailyBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//            }
+//        });
     }
 
     @Override

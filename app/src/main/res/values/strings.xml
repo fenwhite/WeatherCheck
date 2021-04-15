@@ -19,4 +19,9 @@
     <string name="search_hint">请输入城市名称</string>
 
     <string name="defaultPicUrl">https://mfiles.alphacoders.com/894/thumb-894710.png</string>
+
+    <string name="model_location">location</string>
+    <string name="model_location_name"></string>
+    <string name="model_search">search</string>
+    <string name="model_store">store</string>
 </resources>

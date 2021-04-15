@@ -75,10 +75,6 @@ public class AreaChoose extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-//        SearchManager searchManager = (SearchManager) getContext().getSystemService(Context.SEARCH_SERVICE);
-//        ComponentName name = new ComponentName(getContext(), CitySearchActivity.class);
-//        citySearch.setSearchableInfo(searchManager.getSearchableInfo(name));
-
         handler = new Handler(Looper.getMainLooper(),new Handler.Callback() {
             @Override
             public boolean handleMessage(@NonNull Message msg) {
@@ -122,6 +118,7 @@ public class AreaChoose extends Fragment {
                 handler.sendEmptyMessage(CLOSE_SEARCH_LIST);
                 City obj = cityData.get(position);
                 Intent intent = new Intent(getContext(), WeatherActivity.class);
+                intent.putExtra("model",getResources().getString(R.string.model_search));
                 intent.putExtra("city",obj);
                 startActivity(intent);
             }

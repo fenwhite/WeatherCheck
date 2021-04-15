@@ -83,7 +83,8 @@ public class WeatherActivity extends AppCompatActivity {
     private City city;
     private Weather weather;
 
-    private boolean isFromSearch = false;
+    private boolean needSP = false;
+    private String store_pre = "";
 
     private Handler handler = new Handler(Looper.getMainLooper(),new Handler.Callback() {
         @Override
@@ -223,34 +224,41 @@ public class WeatherActivity extends AppCompatActivity {
         });
 
         Bundle extras = getIntent().getExtras();
-        if(extras!=null) {
+        String model = extras.getString("model");
+        if(getResources().getString(R.string.model_location).equals(model)){
+            store_pre = "";
+            this.city = SPUtils.getBean(this, store_pre+"City", City.class);
+            needSP = true;
+        }else{
+        if(getResources().getString(R.string.model_search).equals(model)){
             this.city = (City) extras.getParcelable("city");
             toAreaChoose.setVisibility(View.INVISIBLE);
-            isFromSearch = true;
-        }else {
-            this.city = SPUtils.getBean(this, "City", City.class);
-            isFromSearch = false;
+            drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            needSP = false;
+        }else{
+            ;
+        }
         }
         if(this.city ==null) {
             initClient();
             client.startLocation();
         }else{
             boolean isSendMsg = true;
-            BasicInfo basicInfo = SPUtils.getBean(this,"BasicInfo",BasicInfo.class);
+            BasicInfo basicInfo = SPUtils.getBean(this,store_pre+"BasicInfo",BasicInfo.class);
             isSendMsg = isSendMsg && (basicInfo!=null);
 
             List<ForecastDay> forecastDays = SPUtils.getListBean(this,
-                    "List<ForecastDay>",
+                    store_pre+"List<ForecastDay>",
                     new TypeToken<List<ForecastDay>>() {}.getType());
             isSendMsg = isSendMsg && (forecastDays!=null);
 
-            Aqi aqi = SPUtils.getBean(this,"Aqi",Aqi.class);
+            Aqi aqi = SPUtils.getBean(this,store_pre+"Aqi",Aqi.class);
             isSendMsg = isSendMsg && (aqi!=null);
 
-            SunMoon sunMoon = SPUtils.getBean(this,"SunMoon",SunMoon.class);
+            SunMoon sunMoon = SPUtils.getBean(this,store_pre+"SunMoon",SunMoon.class);
             isSendMsg = isSendMsg && (sunMoon!=null);
 
-            if(!isFromSearch && isSendMsg){
+            if(needSP && isSendMsg){
                 weather = new Weather();
                 weather.setBasicInfo(basicInfo).setForecastDayList(forecastDays)
                         .setAqi(aqi).setSunAndMoon(sunMoon);
@@ -260,7 +268,6 @@ public class WeatherActivity extends AppCompatActivity {
                 handler.sendEmptyMessage(AQI_INFO);
                 handler.sendEmptyMessage(SUN_MOON);
             }else{
-                Log.d(TAG, "update|location:"+city.makeLocation());
                 updateWeatherInfo();
             }
         }
@@ -293,16 +300,19 @@ public class WeatherActivity extends AppCompatActivity {
                     city = new City();
                     city.setLatitude(location.getLatitude()).setLongitude(location.getLongitude());
                     city.setDistrict(location.getDistrict()).setCityId(location.getCityCode()).setName(location.getCity()).setProvince(location.getProvince());
-                    if(!isFromSearch)
-                        SPUtils.saveBean(getApplicationContext(),"City",city);
+                    if(needSP)
+                        SPUtils.saveBean(getApplicationContext(),store_pre+"City",city);
 
                     updateWeatherInfo();
                 }else{
                     //fail
                     Toast.makeText(WeatherActivity.this,"错误描述:" + location.getLocationDetail(),Toast.LENGTH_LONG).show();
-                    Log.d(TAG, "错误码:" + location.getErrorCode() + "\n"+"错误信息:" + location.getErrorInfo() + "\n"+"错误描述:" + location.getLocationDetail()+ "\n");
+//                    Log.d(TAG, "错误码:" + location.getErrorCode() + "\n"+"错误信息:" + location.getErrorInfo() + "\n"+"错误描述:" + location.getLocationDetail()+ "\n");
+                    city = SPUtils.getBean(WeatherActivity.this, store_pre+"City", City.class);
+                    if(city!=null){
+                        updateWeatherInfo();
+                    }
                 }
-                Log.d(TAG, "once location finish!");
             }
         }
     };
@@ -323,8 +333,8 @@ public class WeatherActivity extends AppCompatActivity {
                 if(basicInfo!=null){
                     basicInfo.setCity(city.getName()).setDistrict(city.getDistrict());
                     weather.setBasicInfo(basicInfo);
-                    if(!isFromSearch)
-                        SPUtils.saveBean(WeatherActivity.this,"BasicInfo",basicInfo);
+                    if(needSP)
+                        SPUtils.saveBean(WeatherActivity.this,store_pre+"BasicInfo",basicInfo);
                     handler.sendEmptyMessage(BASIC_WEATHER);
                     basicInfo = null;
                 }else{
@@ -350,8 +360,8 @@ public class WeatherActivity extends AppCompatActivity {
                 List<ForecastDay> list = WeatherHandlerUtils.getWeather3D(weatherDailyBean);
                 if(list.size()>0){
                     weather.setForecastDayList(list);
-                    if(!isFromSearch)
-                        SPUtils.putListBean(WeatherActivity.this,"List<ForecastDay>",list);
+                    if(needSP)
+                        SPUtils.putListBean(WeatherActivity.this,store_pre+"List<ForecastDay>",list);
                     list = null;
 
                     handler.sendEmptyMessage(FORECAST_DAY);
@@ -415,8 +425,8 @@ public class WeatherActivity extends AppCompatActivity {
                 Aqi aqi = WeatherHandlerUtils.getAirNow(airNowBean);
                 if(aqi!=null){
                     weather.setAqi(aqi);
-                    if(!isFromSearch)
-                        SPUtils.saveBean(WeatherActivity.this,"Aqi",aqi);
+                    if(needSP)
+                        SPUtils.saveBean(WeatherActivity.this,store_pre+"Aqi",aqi);
                     aqi = null;
 
                     handler.sendEmptyMessage(AQI_INFO);
@@ -442,8 +452,8 @@ public class WeatherActivity extends AppCompatActivity {
                 SunMoon sunMoon = WeatherHandlerUtils.getSunMoon(sunMoonBean);
                 if(sunMoon!=null){
                     weather.setSunAndMoon(sunMoon);
-                    if(!isFromSearch)
-                        SPUtils.saveBean(WeatherActivity.this,"SunMoon",sunMoon);
+                    if(needSP)
+                        SPUtils.saveBean(WeatherActivity.this,store_pre+"SunMoon",sunMoon);
                     sunMoon = null;
 
                     handler.sendEmptyMessage(SUN_MOON);
@@ -475,8 +485,8 @@ public class WeatherActivity extends AppCompatActivity {
 //                            forecastDay.setMinTemperature(day.getTempMin()).setMaxTemperature(day.getTempMax());
 //                            list.add(forecastDay);
 //                        }
-//                        if(!isFromSearch)
-//                            SPUtils.putListBean(WeatherActivity.this,"15day",list);
+//                        if(!needSP)
+//                            SPUtils.putListBean(WeatherActivity.this,store_pre+"15day",list);
 //                        list = null;
 //                    }else{
 //                        Log.d(TAG, "update weather information callback error:" + weatherDailyBean.getCode().getCode() + " " + weatherDailyBean.getCode().getTxt());

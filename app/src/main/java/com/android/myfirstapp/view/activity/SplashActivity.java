@@ -161,6 +161,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private void startIntent(){
         Intent intent = new Intent(SplashActivity.this, WeatherActivity.class);
+        intent.putExtra("model",getResources().getString(R.string.model_location));
         startActivity(intent);
         overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
         finish();

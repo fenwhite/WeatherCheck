@@ -38,6 +38,7 @@ import com.android.myfirstapp.bean.ForecastDay;
 import com.android.myfirstapp.bean.ForecastHour;
 import com.android.myfirstapp.bean.SunMoon;
 import com.android.myfirstapp.bean.Weather;
+import com.android.myfirstapp.service.AutoUpdateService;
 import com.android.myfirstapp.utils.DateUtils;
 import com.android.myfirstapp.utils.SPUtils;
 import com.android.myfirstapp.utils.WeatherHandlerUtils;
@@ -68,6 +69,7 @@ public class WeatherActivity extends AppCompatActivity {
     public DrawerLayout drawer;
     public NestedScrollView weatherLayout;
     private TextView degree, elseInfo,regionName,updateTime;
+    private TextView lastUpdateTime;
     private ListView forecastDay;
     private RecyclerView forecastHour;
     private CircleProgressView progress;
@@ -198,6 +200,12 @@ public class WeatherActivity extends AppCompatActivity {
         to15D = findViewById(R.id.to15D);
         toAreaChoose = findViewById(R.id.choose_area_button);
 
+        lastUpdateTime = findViewById(R.id.last_update_time);
+        String tmp = SPUtils.getString(this,"updateTime","");
+        if("".equals(tmp)){
+            tmp = "别瞅了，没更新过";
+        }
+        lastUpdateTime.setText(tmp);
 
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -495,6 +503,12 @@ public class WeatherActivity extends AppCompatActivity {
 //                }
 //            }
 //        });
+        startUpdateService();
+    }
+
+    private void startUpdateService(){
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 
     @Override

@@ -25,6 +25,7 @@ import android.widget.ImageView;
 import com.android.myfirstapp.R;
 import com.android.myfirstapp.utils.HandleHttpUtils;
 import com.android.myfirstapp.utils.HttpUtils;
+import com.android.myfirstapp.utils.Utils;
 import com.bumptech.glide.Glide;
 
 import org.jetbrains.annotations.NotNull;
@@ -161,7 +162,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private void startIntent(){
         Intent intent = new Intent(SplashActivity.this, WeatherActivity.class);
-        intent.putExtra("model",getResources().getString(R.string.model_location));
+        Utils.makePre(intent,getResources().getString(R.string.model_location));
         startActivity(intent);
         overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
         finish();

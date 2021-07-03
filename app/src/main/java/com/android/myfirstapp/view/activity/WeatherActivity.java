@@ -221,6 +221,7 @@ public class WeatherActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(WeatherActivity.this,Forecast15Activity.class);
+                intent.putExtra("pre",store_pre);
                 startActivity(intent);
             }
         });
@@ -245,8 +246,7 @@ public class WeatherActivity extends AppCompatActivity {
             needSP = false;
         }else{
             ;
-        }
-        }
+        }}
         if(this.city ==null) {
             initClient();
             client.startLocation();
@@ -315,7 +315,6 @@ public class WeatherActivity extends AppCompatActivity {
                 }else{
                     //fail
                     Toast.makeText(WeatherActivity.this,"错误描述:" + location.getLocationDetail(),Toast.LENGTH_LONG).show();
-//                    Log.d(TAG, "错误码:" + location.getErrorCode() + "\n"+"错误信息:" + location.getErrorInfo() + "\n"+"错误描述:" + location.getLocationDetail()+ "\n");
                     city = SPUtils.getBean(WeatherActivity.this, store_pre+"City", City.class);
                     if(city!=null){
                         updateWeatherInfo();
@@ -474,36 +473,35 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
 
-        //
-//        QWeather.getWeather15D(this, city.makeLocation(), new QWeather.OnResultWeatherDailyListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                throwable.printStackTrace();
-//                Toast.makeText(WeatherActivity.this,getResources().getString(R.string.net_fail),Toast.LENGTH_SHORT).show();
-//            }
-//
-//            @Override
-//            public void onSuccess(WeatherDailyBean weatherDailyBean) {
-//                if(weatherDailyBean!=null){
-//                    if(weatherDailyBean.getCode().getCode().equals("200")) {
-//                        List<ForecastDay> list = new LinkedList<>();
-//                        for (WeatherDailyBean.DailyBean day: weatherDailyBean.getDaily()) {
-//                            ForecastDay forecastDay = new ForecastDay();
-//                            forecastDay.setDate(day.getFxDate()).setText(day.getTextDay()).setIcon(day.getIconDay());
-//                            forecastDay.setMinTemperature(day.getTempMin()).setMaxTemperature(day.getTempMax());
-//                            list.add(forecastDay);
-//                        }
-//                        if(!needSP)
-//                            SPUtils.putListBean(WeatherActivity.this,store_pre+"15day",list);
-//                        list = null;
-//                    }else{
-//                        Log.d(TAG, "update weather information callback error:" + weatherDailyBean.getCode().getCode() + " " + weatherDailyBean.getCode().getTxt());
-//                        Toast.makeText(WeatherActivity.this, weatherDailyBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
-//                    }
-//                }
-//            }
-//        });
-        startUpdateService();
+        QWeather.getWeather15D(this, city.makeLocation(), new QWeather.OnResultWeatherDailyListener() {
+            @Override
+            public void onError(Throwable throwable) {
+                throwable.printStackTrace();
+                Toast.makeText(WeatherActivity.this,getResources().getString(R.string.net_fail),Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSuccess(WeatherDailyBean weatherDailyBean) {
+                if(weatherDailyBean!=null){
+                    if(weatherDailyBean.getCode().getCode().equals("200")) {
+                        List<ForecastDay> list = new LinkedList<>();
+                        for (WeatherDailyBean.DailyBean day: weatherDailyBean.getDaily()) {
+                            ForecastDay forecastDay = new ForecastDay();
+                            forecastDay.setDate(day.getFxDate()).setText(day.getTextDay()).setIcon(day.getIconDay());
+                            forecastDay.setMinTemperature(day.getTempMin()).setMaxTemperature(day.getTempMax());
+                            list.add(forecastDay);
+                        }
+                        if(needSP)
+                            SPUtils.putListBean(WeatherActivity.this,store_pre+"15day",list);
+                        list = null;
+                    }else{
+                        Log.d(TAG, "update weather information callback error:" + weatherDailyBean.getCode().getCode() + " " + weatherDailyBean.getCode().getTxt());
+                        Toast.makeText(WeatherActivity.this, weatherDailyBean.getCode().getTxt(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
+//        startUpdateService();
     }
 
     private void startUpdateService(){

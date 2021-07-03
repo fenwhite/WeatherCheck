@@ -1,6 +1,11 @@
 package com.android.myfirstapp.utils;
 
 import android.content.Context;
+import android.content.Intent;
+
+import androidx.annotation.Nullable;
+
+import com.android.myfirstapp.bean.City;
 
 public class Utils {
     /**
@@ -45,5 +50,15 @@ public class Utils {
     public static float sp2px(Context context, float spValue) {
         final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
         return spValue * fontScale + 0.5f;
+    }
+
+    public static void makePre(Intent i, String model){
+        i.putExtra("model",model);
+    }
+    public static void makePre(Intent i, String model, @Nullable City city){
+        i.putExtra("model",model);
+        if(city!=null) {
+            i.putExtra("city", city);
+        }
     }
 }

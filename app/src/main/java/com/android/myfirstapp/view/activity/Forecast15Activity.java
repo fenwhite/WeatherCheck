@@ -1,23 +1,34 @@
 package com.android.myfirstapp.view.activity;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.myfirstapp.R;
 import com.android.myfirstapp.bean.ForecastDay;
 import com.android.myfirstapp.utils.SPUtils;
+import com.android.myfirstapp.utils.Utils;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.MarkerView;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.MPPointF;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
@@ -29,9 +40,13 @@ public class Forecast15Activity extends AppCompatActivity {
     private LineChart chart;
     private ImageView back;
 
+    private String store_pre;
+    List<ForecastDay> list;
+
     List<Entry> maxEntry,minEntry;
     LineDataSet maxSet,minSet;
-    LineData maxLine,minLine;
+    private List<ILineDataSet> lineDataSets = new ArrayList<>();
+    private LineData mlineData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,14 +63,54 @@ public class Forecast15Activity extends AppCompatActivity {
             }
         });
 
-        List<ForecastDay> list = SPUtils.getListBean(this,
-                "15day",
+        Bundle extras = getIntent().getExtras();
+        store_pre = extras.getString("pre");
+        list = SPUtils.getListBean(this,
+                store_pre+"15day",
                 new TypeToken<List<ForecastDay>>() {
                 }.getType());
         if(list.size()==0){
             Toast.makeText(Forecast15Activity.this,getResources().getString(R.string.function_not_accomplish),Toast.LENGTH_LONG).show();
             return;
         }
+
+        iniChart();
+        setChartData();
+        myMarkerView view = new myMarkerView(this,R.layout.daily_marker_view);
+        view.setChartView(chart);
+        chart.setMarker(view);
+        chart.invalidate();
+    }
+
+    private void iniChart(){
+        chart.setVisibleXRangeMaximum(10);
+        chart.setScaleYEnabled(false);
+        chart.setDrawBorders(false);
+
+        Legend legend = chart.getLegend();
+        legend.setEnabled(false);
+        Description description = chart.getDescription();
+        description.setEnabled(false);
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.enableGridDashedLine(10,5,0);
+        xAxis.setGranularity(1f);
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(float value, AxisBase axis) {
+                return list.get((int)value).getDate().substring(5);
+            }
+        });
+
+        YAxis rAxis = chart.getAxisRight();
+        rAxis.setEnabled(false);
+
+        YAxis lAxis = chart.getAxisLeft();
+        lAxis.setDrawGridLines(false);
+    }
+    private void setChartData(){
+
         maxEntry = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
             maxEntry.add(new Entry(i,Integer.valueOf(list.get(i).getMaxTemperature())));
@@ -64,27 +119,76 @@ public class Forecast15Activity extends AppCompatActivity {
         maxSet.setAxisDependency(YAxis.AxisDependency.LEFT);
         maxSet.setHighlightEnabled(true);
         maxSet.setLineWidth(2);
-        maxSet.setColor(Color.BLUE);
-        maxSet.setCircleColor(Color.CYAN);
+        maxSet.setColor(Color.parseColor("#FF3030"));
+        maxSet.setCircleColor(Color.parseColor("#FF3030"));
         maxSet.setCircleRadius(6);
         maxSet.setCircleHoleRadius(3);
         maxSet.setDrawHighlightIndicators(true);
         maxSet.setHighLightColor(Color.RED);
         maxSet.setValueTextSize(12);
         maxSet.setValueTextColor(Color.BLACK);
+        maxSet.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return String.valueOf((int)value);
+            }
+        });
+        lineDataSets.add(maxSet);
 
-        maxLine =  new LineData(maxSet);
 
-        chart.setData(maxLine);
+        minEntry = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            minEntry.add(new Entry(i,Integer.valueOf(list.get(i).getMinTemperature())));
+        }
+        minSet = new LineDataSet(minEntry,getResources().getString(R.string.min_chart_ling));
+        minSet.setHighlightEnabled(true);
+        minSet.setLineWidth(2);
+        minSet.setColor(Color.parseColor("#4876FF"));
+        minSet.setCircleColor(Color.parseColor("#4876FF"));
+        minSet.setCircleRadius(6);
+        minSet.setCircleHoleRadius(3);
+        minSet.setDrawHighlightIndicators(true);
+        minSet.setHighLightColor(Color.RED);
+        minSet.setValueTextSize(12);
+        minSet.setValueTextColor(Color.BLACK);
+        minSet.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return String.valueOf((int)value);
+            }
+        });
+        lineDataSets.add(minSet);
+        mlineData = new LineData(lineDataSets);
+        chart.setData(mlineData);
+    }
 
-//        minEntry = new ArrayList<>();
-//        for (int i = 0; i < list.size(); i++) {
-//            minEntry.add(new Entry(i,Integer.valueOf(list.get(i).getMinTemperature())));
-//        }
-//        minSet = new LineDataSet(minEntry,getResources().getString(R.string.min_chart_ling));
-//        minLine = new LineData(minSet);
-//        chart.setData(minLine);
+    private class myMarkerView extends MarkerView {
+        /**
+         * Constructor. Sets up the MarkerView with a custom layout resource.
+         *
+         * @param context
+         * @param layoutResource the layout resource to use for the MarkerView
+         */
+        private TextView day,temperature;
+        private ImageView icon;
+        public myMarkerView(Context context, int layoutResource) {
+            super(context, layoutResource);
 
-        chart.invalidate();
+            day = findViewById(R.id.daily_marker_day);
+            temperature = findViewById(R.id.daily_marker_temperature);
+            icon = findViewById(R.id.daily_marker_icon);
+        }
+
+        @Override
+        public void refreshContent(Entry e, Highlight highlight) {
+            int pos = (int) e.getX();
+            day.setText(list.get(pos).getDate());
+            StringBuffer tmp = new StringBuffer(list.get(pos).getMaxTemperature());
+            tmp.append("°~").append(list.get(pos).getMinTemperature()).append('°');
+            temperature.setText(tmp.toString());
+            //todo: show icon
+            super.refreshContent(e,highlight);
+        }
+
     }
 }

@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.myfirstapp.R;
 import com.android.myfirstapp.bean.City;
+import com.android.myfirstapp.utils.Utils;
 import com.android.myfirstapp.view.activity.WeatherActivity;
 import com.qweather.sdk.bean.geo.GeoBean;
 import com.qweather.sdk.view.QWeather;
@@ -118,8 +119,7 @@ public class AreaChoose extends Fragment {
                 handler.sendEmptyMessage(CLOSE_SEARCH_LIST);
                 City obj = cityData.get(position);
                 Intent intent = new Intent(getContext(), WeatherActivity.class);
-                intent.putExtra("model",getResources().getString(R.string.model_search));
-                intent.putExtra("city",obj);
+                Utils.makePre(intent,getResources().getString(R.string.model_search),obj);
                 startActivity(intent);
             }
         });

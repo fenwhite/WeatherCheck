@@ -5,7 +5,6 @@ package com.android.myfirstapp.utils;
     import android.util.Base64;
 
     import com.google.gson.Gson;
-    import com.google.gson.reflect.TypeToken;
 
     import java.io.ByteArrayInputStream;
     import java.io.ByteArrayOutputStream;
@@ -474,4 +473,6 @@ public class SPUtils {
         Gson gson = new Gson();
         return gson.fromJson(objString, clazz);
     }
+
+
 }

@@ -13,7 +13,7 @@ public class myApplication extends Application {
         super.onCreate();
         context = getApplicationContext();
 
-        HeConfig.init("public id", "key");
+        HeConfig.init("HE2103221835221643", "acb753ce4e48440d9949cb6bd885d3a3");
         HeConfig.switchToDevService();
     }
 

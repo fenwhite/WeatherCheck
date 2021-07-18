@@ -134,7 +134,7 @@ public class WeatherActivity extends AppCompatActivity {
         forecastHour.setLayoutManager(linearLayoutManager);
 
         List<ForecastHour> list = weather.getForecastHourList();
-        ForecastHourAdapter adapter = new ForecastHourAdapter(R.id.forecast_hour,list);
+        ForecastHourAdapter adapter = new ForecastHourAdapter(R.layout.forecast_hour_item,list);
         forecastHour.setAdapter(adapter);
     }
 
@@ -382,7 +382,7 @@ public class WeatherActivity extends AppCompatActivity {
         });
 
         // get 24-hours forecast
-        /*QWeather.getWeather24Hourly(this, "101010100", new QWeather.OnResultWeatherHourlyListener() {
+        QWeather.getWeather24Hourly(this, "101010100", new QWeather.OnResultWeatherHourlyListener() {
             @Override
             public void onError(Throwable throwable) {
                 Log.d(TAG, "24Hourly: "+city.makeLocation());
@@ -398,14 +398,10 @@ public class WeatherActivity extends AppCompatActivity {
                         for (WeatherHourlyBean.HourlyBean hour: weatherHourlyBean.getHourly()) {
                             ForecastHour forecastHour = new ForecastHour();
                             forecastHour.setText(hour.getText()).setIcon(hour.getIcon());
-                            forecastHour.setWindDir(hour.getWindDir()).setWindScale(hour.getWindScale());
-                            forecastHour.setTemperature(hour.getTemp());
-                            String time = hour.getFxTime();
-                            if(DateUtils.is00(time)){
-                                forecastHour.setTime(DateUtils.getTimePart(time,'M')+'月'+DateUtils.getTimePart(time,'D')+'日');
-                            }else{
-                                forecastHour.setTime(DateUtils.gethm(time));
-                            }
+                            forecastHour.setWindDir(hour.getWindDir()).setWindScale(hour.getWindScale()+'级');
+                            forecastHour.setTemperature(hour.getTemp()+"°C");
+                            forecastHour.setTime(DateUtils.gethm(hour.getFxTime(),'T'));
+                            list.add(forecastHour);
                         }
                         weather.setForecastHourList(list);
                         list = null;
@@ -418,7 +414,7 @@ public class WeatherActivity extends AppCompatActivity {
                 }
             }
         });
-*/
+
         //get AQI
         QWeather.getAirNow(this, city.makeLocation(), null, new QWeather.OnResultAirNowListener() {
             @Override

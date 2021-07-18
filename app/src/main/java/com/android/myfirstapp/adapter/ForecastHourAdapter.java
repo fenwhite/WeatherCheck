@@ -34,7 +34,7 @@ public class ForecastHourAdapter extends RecyclerView.Adapter<ForecastHourAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ForecastHour hour = mList.get(position);
-        holder.time.setText(hour.getText());
+        holder.time.setText(hour.getTime());
         holder.temperature.setText(hour.getTemperature());
         holder.windScale.setText(hour.getWindScale());
         // todo icon

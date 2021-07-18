@@ -35,16 +35,28 @@
 
                     <include layout="@layout/now_info"/>
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="王之力预见未来"
+                        android:layout_margin="@dimen/normal_margin"
+                        android:textSize="20sp" />
                     <include layout="@layout/forecast" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="AQI指数"
+                        android:text="苍穹杂质"
                         android:layout_margin="@dimen/normal_margin"
                         android:textSize="20sp" />
                     <include layout="@layout/aqi_info"/>
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="日之轨迹"
+                        android:layout_margin="@dimen/normal_margin"
+                        android:textSize="20sp" />
                     <include layout="@layout/sun_info_layout" />
 
                 </LinearLayout>

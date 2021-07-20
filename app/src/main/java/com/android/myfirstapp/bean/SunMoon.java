@@ -1,6 +1,6 @@
 package com.android.myfirstapp.bean;
 
-public class SunMoon {
+public class SunMoon extends BaseHttpBean {
     private String sunRaiseTime;
     private String sunSetTime;
     private String moonRaiseTime;

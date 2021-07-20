@@ -1,6 +1,6 @@
 package com.android.myfirstapp.bean;
 
-public class Aqi {
+public class Aqi extends BaseHttpBean {
     private String api;
     //主要污染物 空气等级 等级文字描述
     private String primary,level,category;

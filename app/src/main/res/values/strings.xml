@@ -10,6 +10,7 @@
     <string name="forecast15_title">未来15天趋势预报</string>
 
     <string name="net_fail">获取信息失败，请检查网络</string>
+    <string name="bean_fail">返回值异常，请刷新</string>
 
     <string name="max_chart_ling">最高温度曲线</string>
     <string name="min_chart_ling">最低温度曲线</string>

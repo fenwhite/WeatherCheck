@@ -1,6 +1,6 @@
 package com.android.myfirstapp.bean;
 
-public class BasicInfo {
+public class BasicInfo extends BaseHttpBean {
     private String updateTime;
     private String city,district;
     private String nowTemperature;

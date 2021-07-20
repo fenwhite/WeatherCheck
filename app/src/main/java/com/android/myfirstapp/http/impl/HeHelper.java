@@ -38,7 +38,6 @@ public class HeHelper implements HttpHelper {
         this.handler = handler;
     }
 
-    //proxy
     public void sendMsg(int what,Object obj){
         switch (what){
             case ContentUtils.AQI_INFO:
@@ -51,9 +50,10 @@ public class HeHelper implements HttpHelper {
                         handler.sendMessage(handler.obtainMessage(ContentUtils.FAIL_GET,((BaseHttpBean) obj).getreText()));
                 }
                 break;
-            case ContentUtils.FORECAST_DAY:
+            case ContentUtils.FORECAST_DAY_3:
+            case ContentUtils.FORECAST_DAY_15:
                 if(obj instanceof List && ((List) obj).get(0) instanceof ForecastDay){
-                    if(((List) obj).size()==3){
+                    if(((List) obj).size()>0){
                         handler.sendMessage(handler.obtainMessage(what, obj));
                     }else{
                         handler.sendMessage(handler.obtainMessage(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail)));
@@ -124,7 +124,7 @@ public class HeHelper implements HttpHelper {
             @Override
             public void onSuccess(WeatherDailyBean weatherDailyBean) {
                 List<ForecastDay> list = WeatherHandlerUtils.getWeatherDayList(weatherDailyBean);
-                sendMsg(ContentUtils.FORECAST_DAY,list);
+                sendMsg(ContentUtils.FORECAST_DAY_3,list);
             }
         });
     }
@@ -142,7 +142,7 @@ public class HeHelper implements HttpHelper {
             public void onSuccess(WeatherDailyBean weatherDailyBean) {
                 List<ForecastDay> list = WeatherHandlerUtils.getWeatherDayList(weatherDailyBean);
                 if(list.size()==15)
-                   ;//todo receiver
+                   sendMsg(ContentUtils.FORECAST_DAY_15,list);
                 else
                 sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail));
             }

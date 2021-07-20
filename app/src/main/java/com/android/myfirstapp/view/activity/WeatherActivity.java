@@ -98,7 +98,7 @@ public class WeatherActivity extends AppCompatActivity {
                         SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showBasic(basicInfo);
                     break;
-                case ContentUtils.FORECAST_DAY:
+                case ContentUtils.FORECAST_DAY_3:
                     List<ForecastDay> forecastDays = (List<ForecastDay>) msg.obj;
                     if(needSP)
                         SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
@@ -272,7 +272,7 @@ public class WeatherActivity extends AppCompatActivity {
             isSendMsg = isSendMsg && (basicInfo!=null);
 
             List<ForecastDay> forecastDays = SPUtils.getListBean(this,
-                    store_pre+ContentUtils.FORECAST_DAY,
+                    store_pre+ContentUtils.FORECAST_DAY_3,
                     new TypeToken<List<ForecastDay>>() {}.getType());
             isSendMsg = isSendMsg && (forecastDays!=null);
 

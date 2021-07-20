@@ -22,6 +22,8 @@
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/forecast15_chart"
+        android:layout_below="@+id/forecast15_back"
+        android:layout_margin="@dimen/normal_margin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true"/>

@@ -19,6 +19,7 @@ import com.android.myfirstapp.bean.BasicInfo;
 import com.android.myfirstapp.bean.City;
 import com.android.myfirstapp.bean.ForecastDay;
 import com.android.myfirstapp.bean.SunMoon;
+import com.android.myfirstapp.http.ViewUpdate;
 import com.android.myfirstapp.http.impl.HeHelper;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.DateUtils;
@@ -33,20 +34,10 @@ import com.qweather.sdk.view.QWeather;
 
 import java.util.List;
 
-public class AutoUpdateService extends Service {
+public class AutoUpdateService extends Service implements ViewUpdate {
     int interval = 8;
 
     HeHelper heHelper;
-    Handler handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
-        @Override
-        public boolean handleMessage(@NonNull Message msg) {
-            if(msg.what!= ContentUtils.FAIL_GET) {
-                SPUtils.saveBean(AutoUpdateService.this, String.valueOf(msg.what), msg.obj);
-                // 搞个气泡显示服务信息
-            }
-            return false;
-        }
-    });
 
     public AutoUpdateService() {
     }
@@ -58,7 +49,7 @@ public class AutoUpdateService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        heHelper = new HeHelper(this,handler);
+        heHelper = new HeHelper(AutoUpdateService.this,this);
 
         updateLocationWeather();
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -79,6 +70,7 @@ public class AutoUpdateService extends Service {
         heHelper.getWeather3D(city.makeLocation());
         heHelper.getAirNow(city.makeLocation());
         heHelper.getSunMoon(city.makeLocation());
+        heHelper.getWeather15D(city.makeLocation());
 
 //        QWeather.getWeatherNow(AutoUpdateService.this, city.makeLocation(), new QWeather.OnResultWeatherNowListener() {
 //            @Override
@@ -142,5 +134,13 @@ public class AutoUpdateService extends Service {
 //                }
 //            }
 //        });
+    }
+
+    @Override
+    public void update(int what, Object obj) {
+        if(what!= ContentUtils.FAIL_GET) {
+            SPUtils.saveBean(AutoUpdateService.this, String.valueOf(what), obj);
+            // 搞个气泡显示服务信息
+        }
     }
 }

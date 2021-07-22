@@ -1,23 +1,20 @@
 package com.android.myfirstapp.http.impl;
 
 import android.content.Context;
-import android.os.Handler;
 
 import com.android.myfirstapp.R;
 import com.android.myfirstapp.bean.Aqi;
-import com.android.myfirstapp.bean.BaseHttpBean;
 import com.android.myfirstapp.bean.BasicInfo;
 import com.android.myfirstapp.bean.City;
 import com.android.myfirstapp.bean.ForecastDay;
 import com.android.myfirstapp.bean.ForecastHour;
 import com.android.myfirstapp.bean.SunMoon;
 import com.android.myfirstapp.http.HttpHelper;
+import com.android.myfirstapp.http.ViewUpdate;
 import com.android.myfirstapp.myApplication;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.DateUtils;
-import com.android.myfirstapp.utils.SPUtils;
 import com.android.myfirstapp.utils.WeatherHandlerUtils;
-import com.android.myfirstapp.view.activity.WeatherActivity;
 import com.qweather.sdk.bean.air.AirNowBean;
 import com.qweather.sdk.bean.base.Code;
 import com.qweather.sdk.bean.sunmoon.SunMoonBean;
@@ -31,49 +28,11 @@ import java.util.List;
 
 public class HeHelper implements HttpHelper {
     private Context context;
-    private Handler handler;
+    private ViewUpdate receiver;
 
-    public HeHelper(Context context, Handler handler) {
+    public HeHelper(Context context, ViewUpdate receiver) {
         this.context = context;
-        this.handler = handler;
-    }
-
-    public void sendMsg(int what,Object obj){
-        switch (what){
-            case ContentUtils.AQI_INFO:
-            case ContentUtils.SUN_MOON:
-            case ContentUtils.BASIC_WEATHER:
-                if(obj instanceof BaseHttpBean){
-                    if(((BaseHttpBean) obj).getCode()==ContentUtils.HTTPOK) {
-                        handler.sendMessage(handler.obtainMessage(what, obj));
-                    }else
-                        handler.sendMessage(handler.obtainMessage(ContentUtils.FAIL_GET,((BaseHttpBean) obj).getreText()));
-                }
-                break;
-            case ContentUtils.FORECAST_DAY_3:
-            case ContentUtils.FORECAST_DAY_15:
-                if(obj instanceof List && ((List) obj).get(0) instanceof ForecastDay){
-                    if(((List) obj).size()>0){
-                        handler.sendMessage(handler.obtainMessage(what, obj));
-                    }else{
-                        handler.sendMessage(handler.obtainMessage(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail)));
-                    }
-                }
-                break;
-            case ContentUtils.FORECAST_HOUR:
-                if(obj instanceof List && ((List) obj).get(0) instanceof ForecastHour){
-                    if(((List) obj).size()==24){
-                        handler.sendMessage(handler.obtainMessage(what, obj));
-                    }else{
-                        handler.sendMessage(handler.obtainMessage(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail)));
-                    }
-                }
-                break;
-            case ContentUtils.FAIL_GET:
-            default:
-                handler.sendMessage(handler.obtainMessage(what, obj));
-
-        }
+        this.receiver = receiver;
     }
 
     @Override
@@ -87,7 +46,7 @@ public class HeHelper implements HttpHelper {
 
                 basicInfo.setCode(ContentUtils.HTTPFAIL);
                 basicInfo.setreText(myApplication.getContext().getResources().getString(R.string.net_fail));
-                sendMsg(ContentUtils.FAIL_GET,basicInfo);
+                receiver.update(ContentUtils.FAIL_GET,basicInfo);
             }
 
             @Override
@@ -107,7 +66,7 @@ public class HeHelper implements HttpHelper {
                     basicInfo.setCode(ContentUtils.HTTPFAIL);
                     basicInfo.setreText(myApplication.getContext().getResources().getString(R.string.bean_fail));
                 }
-                sendMsg(ContentUtils.BASIC_WEATHER, basicInfo);
+                receiver.update(ContentUtils.BASIC_WEATHER, basicInfo);
             }
         });
     }
@@ -118,13 +77,13 @@ public class HeHelper implements HttpHelper {
             @Override
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
-                sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
+                receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
             }
 
             @Override
             public void onSuccess(WeatherDailyBean weatherDailyBean) {
                 List<ForecastDay> list = WeatherHandlerUtils.getWeatherDayList(weatherDailyBean);
-                sendMsg(ContentUtils.FORECAST_DAY_3,list);
+                receiver.update(ContentUtils.FORECAST_DAY_3,list);
             }
         });
     }
@@ -135,16 +94,16 @@ public class HeHelper implements HttpHelper {
             @Override
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
-                sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
+                receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
             }
 
             @Override
             public void onSuccess(WeatherDailyBean weatherDailyBean) {
                 List<ForecastDay> list = WeatherHandlerUtils.getWeatherDayList(weatherDailyBean);
                 if(list.size()==15)
-                   sendMsg(ContentUtils.FORECAST_DAY_15,list);
+                    receiver.update(ContentUtils.FORECAST_DAY_15,list);
                 else
-                sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail));
+                    receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail));
             }
         });
     }
@@ -155,16 +114,16 @@ public class HeHelper implements HttpHelper {
             @Override
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
-                sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
+                receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
             }
 
             @Override
             public void onSuccess(WeatherHourlyBean weatherHourlyBean) {
                 List<ForecastHour> list = WeatherHandlerUtils.getWeatherHourly(weatherHourlyBean);
                 if(list.size()==24)
-                    sendMsg(ContentUtils.FORECAST_HOUR,list);
+                    receiver.update(ContentUtils.FORECAST_HOUR,list);
                 else
-                    sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail));
+                    receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.bean_fail));
             }
         });
     }
@@ -175,13 +134,13 @@ public class HeHelper implements HttpHelper {
             @Override
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
-                sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
+                receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
             }
 
             @Override
             public void onSuccess(AirNowBean airNowBean) {
                 Aqi aqi = WeatherHandlerUtils.getAirNow(airNowBean);
-                sendMsg(ContentUtils.AQI_INFO,aqi);
+                receiver.update(ContentUtils.AQI_INFO,aqi);
             }
         });
     }
@@ -192,13 +151,13 @@ public class HeHelper implements HttpHelper {
             @Override
             public void onError(Throwable throwable) {
                 throwable.printStackTrace();
-                sendMsg(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
+                receiver.update(ContentUtils.FAIL_GET,myApplication.getContext().getResources().getString(R.string.net_fail));
             }
 
             @Override
             public void onSuccess(SunMoonBean sunMoonBean) {
                 SunMoon sunMoon = WeatherHandlerUtils.getSunMoon(sunMoonBean);
-                sendMsg(ContentUtils.SUN_MOON,sunMoon);
+                receiver.update(ContentUtils.SUN_MOON,sunMoon);
             }
         });
     }

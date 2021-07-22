@@ -12,6 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.myfirstapp.R;
 import com.android.myfirstapp.bean.ForecastDay;
+import com.android.myfirstapp.http.ViewUpdate;
+import com.android.myfirstapp.http.impl.HeHelper;
+import com.android.myfirstapp.service.AutoUpdateService;
+import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.SPUtils;
 import com.android.myfirstapp.utils.Utils;
 import com.github.mikephil.charting.charts.LineChart;
@@ -34,14 +38,15 @@ import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Forecast15Activity extends AppCompatActivity {
+public class Forecast15Activity extends AppCompatActivity implements ViewUpdate {
     private static final String TAG = "Forecast15Activity";
 
     private LineChart chart;
     private ImageView back;
 
     private String store_pre;
-    List<ForecastDay> list;
+    private List<ForecastDay> list;
+    HeHelper heHelper;
 
     List<Entry> maxEntry,minEntry;
     LineDataSet maxSet,minSet;
@@ -52,6 +57,8 @@ public class Forecast15Activity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast15);
+
+        heHelper = new HeHelper(Forecast15Activity.this,this);
 
         chart = findViewById(R.id.forecast15_chart);
         back = findViewById(R.id.forecast15_back);
@@ -65,22 +72,19 @@ public class Forecast15Activity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         store_pre = extras.getString("pre");
+        String location = extras.getString("location");
         list = SPUtils.getListBean(this,
-                store_pre+"15day",
+                store_pre+ ContentUtils.FORECAST_DAY_15,
                 new TypeToken<List<ForecastDay>>() {
                 }.getType());
-        if(list.size()==0){
-            Toast.makeText(Forecast15Activity.this,getResources().getString(R.string.function_not_accomplish),Toast.LENGTH_LONG).show();
-            return;
+        if(list==null || list.size()==0){
+            heHelper.getWeather15D(location);
+        }else{
+            update(ContentUtils.FORECAST_DAY_15,list);
         }
-
-        iniChart();
-        setChartData();
-        myMarkerView view = new myMarkerView(this,R.layout.daily_marker_view);
-        view.setChartView(chart);
-        chart.setMarker(view);
-        chart.invalidate();
     }
+
+
 
     private void iniChart(){
         chart.setVisibleXRangeMaximum(10);
@@ -160,6 +164,22 @@ public class Forecast15Activity extends AppCompatActivity {
         lineDataSets.add(minSet);
         mlineData = new LineData(lineDataSets);
         chart.setData(mlineData);
+    }
+
+    @Override
+    public void update(int what, Object obj) {
+        if(what==ContentUtils.FORECAST_DAY_15){
+            if(list==null || list.size()==0)
+                SPUtils.saveBean(Forecast15Activity.this, store_pre+ ContentUtils.FORECAST_DAY_15, obj);
+            list = (List<ForecastDay>) obj;
+
+            iniChart();
+            setChartData();
+            myMarkerView view = new myMarkerView(this,R.layout.daily_marker_view);
+            view.setChartView(chart);
+            chart.setMarker(view);
+            chart.invalidate();
+        }
     }
 
     private class myMarkerView extends MarkerView {

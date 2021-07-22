@@ -15,8 +15,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Parcelable;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -27,7 +25,6 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
-import com.amap.api.location.AMapLocationQualityReport;
 import com.android.myfirstapp.R;
 import com.android.myfirstapp.adapter.ForecastDayAdapter;
 import com.android.myfirstapp.adapter.ForecastHourAdapter;
@@ -38,24 +35,17 @@ import com.android.myfirstapp.bean.ForecastDay;
 import com.android.myfirstapp.bean.ForecastHour;
 import com.android.myfirstapp.bean.SunMoon;
 import com.android.myfirstapp.bean.Weather;
+import com.android.myfirstapp.http.HandlerUpdater;
 import com.android.myfirstapp.http.impl.HeHelper;
 import com.android.myfirstapp.service.AutoUpdateService;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.DateUtils;
 import com.android.myfirstapp.utils.SPUtils;
-import com.android.myfirstapp.utils.WeatherHandlerUtils;
 import com.android.myfirstapp.view.widget.CircleProgressView;
 import com.android.myfirstapp.view.widget.LabelText;
 import com.android.myfirstapp.view.widget.SunTrack;
 import com.google.gson.reflect.TypeToken;
-import com.qweather.sdk.bean.air.AirNowBean;
-import com.qweather.sdk.bean.sunmoon.SunMoonBean;
-import com.qweather.sdk.bean.weather.WeatherDailyBean;
-import com.qweather.sdk.bean.weather.WeatherHourlyBean;
-import com.qweather.sdk.bean.weather.WeatherNowBean;
-import com.qweather.sdk.view.QWeather;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class WeatherActivity extends AppCompatActivity {
@@ -79,7 +69,7 @@ public class WeatherActivity extends AppCompatActivity {
     private AMapLocationClientOption option;
     //存储数据模型
     private City city;
-    private Weather weather;
+
     HeHelper heHelper;
 
     private boolean needSP = false;
@@ -120,6 +110,9 @@ public class WeatherActivity extends AppCompatActivity {
                         SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showSunMoon((SunMoon) msg.obj);
                     break;
+                case ContentUtils.FORECAST_DAY_15:
+                    SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+                    break;
                 case ContentUtils.FAIL_GET:
                     showToastLong((String)msg.obj);
                     break;
@@ -127,7 +120,6 @@ public class WeatherActivity extends AppCompatActivity {
             return false;
         }
     });
-
     private void showBasic(BasicInfo basic){
         degree.setText(basic.getNowTemperature());
         elseInfo.setText(basic.getText()+" "+basic.getWindDir());
@@ -233,6 +225,7 @@ public class WeatherActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(WeatherActivity.this,Forecast15Activity.class);
                 intent.putExtra("pre",store_pre);
+                intent.putExtra("location",city.makeLocation());
                 startActivity(intent);
             }
         });
@@ -245,7 +238,7 @@ public class WeatherActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         String model = extras.getString("model");
-        heHelper = new HeHelper(WeatherActivity.this,handler);
+        heHelper = new HeHelper(WeatherActivity.this,new HandlerUpdater(handler));
 
         if(getResources().getString(R.string.model_location).equals(model)){
             store_pre = "";
@@ -350,6 +343,7 @@ public class WeatherActivity extends AppCompatActivity {
         heHelper.getAirNow(city.makeLocation());
         heHelper.getWeather24Hourly(city.makeLocation());
         heHelper.getSunMoon(city.makeLocation());
+        heHelper.getWeather15D(city.makeLocation());
     }
 
     private void startUpdateService(){

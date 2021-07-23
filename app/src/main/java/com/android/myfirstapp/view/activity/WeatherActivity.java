@@ -34,13 +34,13 @@ import com.android.myfirstapp.bean.City;
 import com.android.myfirstapp.bean.ForecastDay;
 import com.android.myfirstapp.bean.ForecastHour;
 import com.android.myfirstapp.bean.SunMoon;
-import com.android.myfirstapp.bean.Weather;
 import com.android.myfirstapp.http.HandlerUpdater;
 import com.android.myfirstapp.http.impl.HeHelper;
 import com.android.myfirstapp.service.AutoUpdateService;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.DateUtils;
 import com.android.myfirstapp.utils.SPUtils;
+import com.android.myfirstapp.utils.store.WeatherStore;
 import com.android.myfirstapp.view.widget.CircleProgressView;
 import com.android.myfirstapp.view.widget.LabelText;
 import com.android.myfirstapp.view.widget.SunTrack;
@@ -71,6 +71,7 @@ public class WeatherActivity extends AppCompatActivity {
     private City city;
 
     HeHelper heHelper;
+    WeatherStore storeManager;
 
     private boolean needSP = false;
     private String store_pre = "";
@@ -84,34 +85,40 @@ public class WeatherActivity extends AppCompatActivity {
                     break;
                 case ContentUtils.BASIC_WEATHER:
                     BasicInfo basicInfo = (BasicInfo) msg.obj;
-                    if(needSP)
-                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+//                    if(needSP)
+//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showBasic(basicInfo);
+                    storeManager.storeBasicInfo(basicInfo);
                     break;
                 case ContentUtils.FORECAST_DAY_3:
                     List<ForecastDay> forecastDays = (List<ForecastDay>) msg.obj;
-                    if(needSP)
-                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+//                    if(needSP)
+//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showForecastInDay(forecastDays);
+                    storeManager.storeDay(forecastDays,3);
                     break;
                 case ContentUtils.FORECAST_HOUR:
                     List<ForecastHour> forecastHours = (List<ForecastHour>) msg.obj;
-                    if(needSP)
-                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+//                    if(needSP)
+//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showForecastInHour(forecastHours);
+                    storeManager.storeHour(forecastHours);
                     break;
                 case ContentUtils.AQI_INFO:
-                    if(needSP)
-                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+//                    if(needSP)
+//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showAQI((Aqi) msg.obj);
+                    storeManager.storeAqi(msg.obj);
                     break;
                 case ContentUtils.SUN_MOON:
-                    if(needSP)
-                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+//                    if(needSP)
+//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showSunMoon((SunMoon) msg.obj);
+                    storeManager.storeSunMoon(msg.obj);
                     break;
                 case ContentUtils.FORECAST_DAY_15:
-                    SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+//                    SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
+                    storeManager.storeDay((List) msg.obj,15);
                     break;
                 case ContentUtils.FAIL_GET:
                     showToastLong((String)msg.obj);
@@ -203,13 +210,14 @@ public class WeatherActivity extends AppCompatActivity {
         sunTrack = findViewById(R.id.sun_track);
         to15D = findViewById(R.id.to15D);
         toAreaChoose = findViewById(R.id.choose_area_button);
-
         lastUpdateTime = findViewById(R.id.last_update_time);
         String tmp = SPUtils.getString(this,"updateTime","");
         if("".equals(tmp)){
             tmp = "别瞅了，没更新过";
         }
         lastUpdateTime.setText(tmp);
+
+        storeManager = new WeatherStore(WeatherActivity.this);
 
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -241,13 +249,17 @@ public class WeatherActivity extends AppCompatActivity {
         heHelper = new HeHelper(WeatherActivity.this,new HandlerUpdater(handler));
 
         if(getResources().getString(R.string.model_location).equals(model)){
-            store_pre = "";
-            this.city = SPUtils.getBean(this, store_pre+"City", City.class);
+//            store_pre = "";
+//            this.city = SPUtils.getBean(this, store_pre+"City", City.class);
             needSP = true;
+
+            storeManager.setValid(true);
+            this.city = storeManager.getCity();
 
         }else{
         if(getResources().getString(R.string.model_search).equals(model)){
             this.city = (City) extras.getParcelable("city");
+            storeManager.setValid(false);
             toAreaChoose.setVisibility(View.INVISIBLE);
             drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
             needSP = false;
@@ -261,23 +273,28 @@ public class WeatherActivity extends AppCompatActivity {
             client.startLocation();
         }else{
             boolean isSendMsg = true;
-            BasicInfo basicInfo = SPUtils.getBean(this,store_pre+ ContentUtils.BASIC_WEATHER,BasicInfo.class);
+//            BasicInfo basicInfo = SPUtils.getBean(this,store_pre+ ContentUtils.BASIC_WEATHER,BasicInfo.class);
+            BasicInfo basicInfo = storeManager.getBasicInfo();
             isSendMsg = isSendMsg && (basicInfo!=null);
 
-            List<ForecastDay> forecastDays = SPUtils.getListBean(this,
-                    store_pre+ContentUtils.FORECAST_DAY_3,
-                    new TypeToken<List<ForecastDay>>() {}.getType());
+//            List<ForecastDay> forecastDays = SPUtils.getListBean(this,
+//                    store_pre+ContentUtils.FORECAST_DAY_3,
+//                    new TypeToken<List<ForecastDay>>() {}.getType());
+            List<ForecastDay> forecastDays = storeManager.getStoreDay(3);
             isSendMsg = isSendMsg && (forecastDays!=null);
 
-            Aqi aqi = SPUtils.getBean(this,store_pre+ContentUtils.AQI_INFO,Aqi.class);
+//            Aqi aqi = SPUtils.getBean(this,store_pre+ContentUtils.AQI_INFO,Aqi.class);
+            Aqi aqi = storeManager.getAqi();
             isSendMsg = isSendMsg && (aqi!=null);
 
-            SunMoon sunMoon = SPUtils.getBean(this,store_pre+ContentUtils.SUN_MOON,SunMoon.class);
+//            SunMoon sunMoon = SPUtils.getBean(this,store_pre+ContentUtils.SUN_MOON,SunMoon.class);
+            SunMoon sunMoon = storeManager.getSunMoon();
             isSendMsg = isSendMsg && (sunMoon!=null);
 
-            List<ForecastHour> forecastHours = SPUtils.getListBean(this,
-                    store_pre+ContentUtils.FORECAST_HOUR,
-                    new TypeToken<List<ForecastHour>>() {}.getType());
+//            List<ForecastHour> forecastHours = SPUtils.getListBean(this,
+//                    store_pre+ContentUtils.FORECAST_HOUR,
+//                    new TypeToken<List<ForecastHour>>() {}.getType());
+            List<ForecastHour> forecastHours = storeManager.getStoreHour();
             isSendMsg = isSendMsg && (forecastHours!=null);
 
             if(needSP && isSendMsg){
@@ -321,14 +338,16 @@ public class WeatherActivity extends AppCompatActivity {
                     city = new City();
                     city.setLatitude(location.getLatitude()).setLongitude(location.getLongitude());
                     city.setDistrict(location.getDistrict()).setCityId(location.getCityCode()).setName(location.getCity()).setProvince(location.getProvince());
-                    if(needSP)
-                        SPUtils.saveBean(getApplicationContext(),store_pre+"City",city);
+//                    if(needSP)
+//                        SPUtils.saveBean(getApplicationContext(),store_pre+"City",city);
+                    storeManager.storeCity(city);
 
                     updateWeatherInfo();
                 }else{
                     //fail
                     Toast.makeText(WeatherActivity.this,"错误描述:" + location.getLocationDetail(),Toast.LENGTH_LONG).show();
-                    city = SPUtils.getBean(WeatherActivity.this, store_pre+"City", City.class);
+//                    city = SPUtils.getBean(WeatherActivity.this, store_pre+"City", City.class);
+                    city = storeManager.getCity();
                     if(city!=null){
                         updateWeatherInfo();
                     }

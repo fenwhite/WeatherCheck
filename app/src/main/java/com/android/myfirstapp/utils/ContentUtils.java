@@ -10,6 +10,7 @@ public class ContentUtils {
     public static final int REFRESH_FINISH = 10;
     public static final int SUN_MOON = 8;
     public static final int FORECAST_DAY_15 = 15;
+    public static final int CITY = 4;
     public static final int TOASTLONG = 2;
 
     public static final int HTTPFAIL = 200;

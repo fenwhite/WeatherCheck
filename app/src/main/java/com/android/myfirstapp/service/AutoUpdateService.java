@@ -4,15 +4,8 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.os.SystemClock;
-import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 import com.android.myfirstapp.bean.Aqi;
 import com.android.myfirstapp.bean.BasicInfo;
@@ -24,20 +17,16 @@ import com.android.myfirstapp.http.impl.HeHelper;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.DateUtils;
 import com.android.myfirstapp.utils.SPUtils;
-import com.android.myfirstapp.utils.WeatherHandlerUtils;
-import com.android.myfirstapp.view.activity.WeatherActivity;
-import com.qweather.sdk.bean.air.AirNowBean;
-import com.qweather.sdk.bean.sunmoon.SunMoonBean;
-import com.qweather.sdk.bean.weather.WeatherDailyBean;
-import com.qweather.sdk.bean.weather.WeatherNowBean;
-import com.qweather.sdk.view.QWeather;
+import com.android.myfirstapp.utils.store.WeatherStore;
 
 import java.util.List;
+
 
 public class AutoUpdateService extends Service implements ViewUpdate {
     int interval = 8;
 
     HeHelper heHelper;
+    WeatherStore store;
 
     public AutoUpdateService() {
     }
@@ -50,6 +39,7 @@ public class AutoUpdateService extends Service implements ViewUpdate {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         heHelper = new HeHelper(AutoUpdateService.this,this);
+        store = new WeatherStore(AutoUpdateService.this);
 
         updateLocationWeather();
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -63,7 +53,7 @@ public class AutoUpdateService extends Service implements ViewUpdate {
     }
 
     private void updateLocationWeather(){
-        final City city = SPUtils.getBean(AutoUpdateService.this, "City", City.class);
+        City city = store.getCity();
         SPUtils.putString(AutoUpdateService.this,"updateTime",DateUtils.formatUTC(System.currentTimeMillis(),""));
 
         heHelper.getWeatherNow(city);
@@ -71,76 +61,32 @@ public class AutoUpdateService extends Service implements ViewUpdate {
         heHelper.getAirNow(city.makeLocation());
         heHelper.getSunMoon(city.makeLocation());
         heHelper.getWeather15D(city.makeLocation());
-
-//        QWeather.getWeatherNow(AutoUpdateService.this, city.makeLocation(), new QWeather.OnResultWeatherNowListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                throwable.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onSuccess(WeatherNowBean weatherNowBean) {
-//                BasicInfo basicInfo = WeatherHandlerUtils.getWeatherNow(weatherNowBean);
-//                if(basicInfo!=null){
-//                    basicInfo.setCity(city.getName()).setDistrict(city.getDistrict());
-//                    SPUtils.saveBean(AutoUpdateService.this,"BasicInfo",basicInfo);
-//                }
-//            }
-//        });
-//
-//        QWeather.getWeather3D(AutoUpdateService.this, city.makeLocation(), new QWeather.OnResultWeatherDailyListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                throwable.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onSuccess(WeatherDailyBean weatherDailyBean) {
-//                List<ForecastDay> list = WeatherHandlerUtils.getWeatherDayList(weatherDailyBean);
-//                if(list.size()>0){
-//                    SPUtils.putListBean(AutoUpdateService.this,"List<ForecastDay>",list);
-//                }
-//            }
-//        });
-//
-//        QWeather.getAirNow(AutoUpdateService.this, city.makeLocation(), null, new QWeather.OnResultAirNowListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                throwable.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onSuccess(AirNowBean airNowBean) {
-//                Aqi aqi = WeatherHandlerUtils.getAirNow(airNowBean);
-//                if(aqi!=null){
-//                    SPUtils.saveBean(AutoUpdateService.this,"Aqi",aqi);
-//                    aqi = null;
-//
-//                }
-//            }
-//        });
-//
-//        QWeather.getSunMoon(AutoUpdateService.this, city.makeLocation(), DateUtils.formatUTC(System.currentTimeMillis(), "yyyyMMdd"), new QWeather.OnResultSunMoonListener() {
-//            @Override
-//            public void onError(Throwable throwable) {
-//                throwable.printStackTrace();
-//            }
-//
-//            @Override
-//            public void onSuccess(SunMoonBean sunMoonBean) {
-//                SunMoon sunMoon = WeatherHandlerUtils.getSunMoon(sunMoonBean);
-//                if(sunMoon!=null){
-//                    SPUtils.saveBean(AutoUpdateService.this,"SunMoon",sunMoon);
-//                }
-//            }
-//        });
+        heHelper.getWeather24Hourly(city.makeLocation());
     }
 
     @Override
     public void update(int what, Object obj) {
         if(what!= ContentUtils.FAIL_GET) {
-            SPUtils.saveBean(AutoUpdateService.this, String.valueOf(what), obj);
-            // 搞个气泡显示服务信息
+            switch (what){
+                case ContentUtils.BASIC_WEATHER:
+                    store.storeBasicInfo(obj);
+                    break;
+                case ContentUtils.FORECAST_DAY_3:
+                    store.storeDay((List) obj,3);
+                    break;
+                case ContentUtils.FORECAST_DAY_15:
+                    store.storeDay((List) obj,15);
+                    break;
+                case ContentUtils.FORECAST_HOUR:
+                    store.storeHour((List) obj);
+                    break;
+                case ContentUtils.SUN_MOON:
+                    store.storeSunMoon(obj);
+                    break;
+                case ContentUtils.AQI_INFO:
+                    store.storeAqi(obj);
+                    break;
+            }
         }
     }
 }

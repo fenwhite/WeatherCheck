@@ -11,6 +11,7 @@
 
     <string name="net_fail">获取信息失败，请检查网络</string>
     <string name="bean_fail">返回值异常，请刷新</string>
+    <string name="store_non_valid">本地储存管理器不可用</string>
 
     <string name="max_chart_ling">最高温度曲线</string>
     <string name="min_chart_ling">最低温度曲线</string>

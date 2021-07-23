@@ -18,6 +18,7 @@ import com.android.myfirstapp.service.AutoUpdateService;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.SPUtils;
 import com.android.myfirstapp.utils.Utils;
+import com.android.myfirstapp.utils.store.WeatherStore;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.Description;
@@ -47,6 +48,7 @@ public class Forecast15Activity extends AppCompatActivity implements ViewUpdate 
     private String store_pre;
     private List<ForecastDay> list;
     HeHelper heHelper;
+    WeatherStore store;
 
     List<Entry> maxEntry,minEntry;
     LineDataSet maxSet,minSet;
@@ -73,10 +75,13 @@ public class Forecast15Activity extends AppCompatActivity implements ViewUpdate 
         Bundle extras = getIntent().getExtras();
         store_pre = extras.getString("pre");
         String location = extras.getString("location");
-        list = SPUtils.getListBean(this,
-                store_pre+ ContentUtils.FORECAST_DAY_15,
-                new TypeToken<List<ForecastDay>>() {
-                }.getType());
+
+        store = new WeatherStore(Forecast15Activity.this,false,"");
+//        list = SPUtils.getListBean(this,
+//                store_pre+ ContentUtils.FORECAST_DAY_15,
+//                new TypeToken<List<ForecastDay>>() {
+//                }.getType());
+        list = store.getStoreDay(15);
         if(list==null || list.size()==0){
             heHelper.getWeather15D(location);
         }else{

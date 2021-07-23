@@ -35,7 +35,6 @@ public class Weather {
     public void setForecastHourList(List<ForecastHour> forecastHourList) {
         if(this.forecastHourList!=null)
             forecastHourList.clear();
-        //todo
         this.forecastHourList = forecastHourList;
     }
 

@@ -85,39 +85,28 @@ public class WeatherActivity extends AppCompatActivity {
                     break;
                 case ContentUtils.BASIC_WEATHER:
                     BasicInfo basicInfo = (BasicInfo) msg.obj;
-//                    if(needSP)
-//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showBasic(basicInfo);
                     storeManager.storeBasicInfo(basicInfo);
                     break;
                 case ContentUtils.FORECAST_DAY_3:
                     List<ForecastDay> forecastDays = (List<ForecastDay>) msg.obj;
-//                    if(needSP)
-//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showForecastInDay(forecastDays);
                     storeManager.storeDay(forecastDays,3);
                     break;
                 case ContentUtils.FORECAST_HOUR:
                     List<ForecastHour> forecastHours = (List<ForecastHour>) msg.obj;
-//                    if(needSP)
-//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showForecastInHour(forecastHours);
                     storeManager.storeHour(forecastHours);
                     break;
                 case ContentUtils.AQI_INFO:
-//                    if(needSP)
-//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showAQI((Aqi) msg.obj);
                     storeManager.storeAqi(msg.obj);
                     break;
                 case ContentUtils.SUN_MOON:
-//                    if(needSP)
-//                        SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     showSunMoon((SunMoon) msg.obj);
                     storeManager.storeSunMoon(msg.obj);
                     break;
                 case ContentUtils.FORECAST_DAY_15:
-//                    SPUtils.saveBean(WeatherActivity.this,store_pre+msg.what,msg.obj);
                     storeManager.storeDay((List) msg.obj,15);
                     break;
                 case ContentUtils.FAIL_GET:
@@ -219,20 +208,11 @@ public class WeatherActivity extends AppCompatActivity {
 
         storeManager = new WeatherStore(WeatherActivity.this);
 
-        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                if (client == null)
-                    initClient();
-                client.startLocation();
-                handler.sendEmptyMessage(ContentUtils.REFRESH_FINISH);
-            }
-        });
         to15D.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(WeatherActivity.this,Forecast15Activity.class);
-                intent.putExtra("pre",store_pre);
+                intent.putExtra("pre",storeManager.getPre());
                 intent.putExtra("location",city.makeLocation());
                 startActivity(intent);
             }
@@ -249,65 +229,72 @@ public class WeatherActivity extends AppCompatActivity {
         heHelper = new HeHelper(WeatherActivity.this,new HandlerUpdater(handler));
 
         if(getResources().getString(R.string.model_location).equals(model)){
-//            store_pre = "";
-//            this.city = SPUtils.getBean(this, store_pre+"City", City.class);
-            needSP = true;
-
             storeManager.setValid(true);
             this.city = storeManager.getCity();
 
+            swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    if (client == null)
+                        initClient();
+                    client.startLocation();
+                    handler.sendEmptyMessage(ContentUtils.REFRESH_FINISH);
+                }
+            });
+
+            if(this.city ==null) {
+                initClient();
+                client.startLocation();
+            }else{
+                boolean isShow = true;
+                BasicInfo basicInfo = storeManager.getBasicInfo();
+                isShow = isShow && (basicInfo!=null);
+
+                List<ForecastDay> forecastDays = storeManager.getStoreDay(3);
+                isShow = isShow && (forecastDays!=null);
+
+                Aqi aqi = storeManager.getAqi();
+                isShow = isShow && (aqi!=null);
+
+                SunMoon sunMoon = storeManager.getSunMoon();
+                isShow = isShow && (sunMoon!=null);
+
+                List<ForecastHour> forecastHours = storeManager.getStoreHour();
+                isShow = isShow && (forecastHours!=null);
+
+                if(isShow){
+                    showBasic(basicInfo);
+                    showForecastInDay(forecastDays);
+                    showAQI(aqi);
+                    showSunMoon(sunMoon);
+                    showForecastInHour(forecastHours);
+                }else{
+                    updateWeatherInfo();
+                }
+            }
         }else{
         if(getResources().getString(R.string.model_search).equals(model)){
             this.city = (City) extras.getParcelable("city");
             storeManager.setValid(false);
+            storeManager.setPre(city.getName());
+
+            swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    updateWeatherInfo();
+                    handler.sendEmptyMessage(ContentUtils.REFRESH_FINISH);
+                }
+            });
+
             toAreaChoose.setVisibility(View.INVISIBLE);
             drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-            needSP = false;
 
+            updateWeatherInfo();
         }else{
             ;
         }}
 
-        if(this.city ==null) {
-            initClient();
-            client.startLocation();
-        }else{
-            boolean isSendMsg = true;
-//            BasicInfo basicInfo = SPUtils.getBean(this,store_pre+ ContentUtils.BASIC_WEATHER,BasicInfo.class);
-            BasicInfo basicInfo = storeManager.getBasicInfo();
-            isSendMsg = isSendMsg && (basicInfo!=null);
 
-//            List<ForecastDay> forecastDays = SPUtils.getListBean(this,
-//                    store_pre+ContentUtils.FORECAST_DAY_3,
-//                    new TypeToken<List<ForecastDay>>() {}.getType());
-            List<ForecastDay> forecastDays = storeManager.getStoreDay(3);
-            isSendMsg = isSendMsg && (forecastDays!=null);
-
-//            Aqi aqi = SPUtils.getBean(this,store_pre+ContentUtils.AQI_INFO,Aqi.class);
-            Aqi aqi = storeManager.getAqi();
-            isSendMsg = isSendMsg && (aqi!=null);
-
-//            SunMoon sunMoon = SPUtils.getBean(this,store_pre+ContentUtils.SUN_MOON,SunMoon.class);
-            SunMoon sunMoon = storeManager.getSunMoon();
-            isSendMsg = isSendMsg && (sunMoon!=null);
-
-//            List<ForecastHour> forecastHours = SPUtils.getListBean(this,
-//                    store_pre+ContentUtils.FORECAST_HOUR,
-//                    new TypeToken<List<ForecastHour>>() {}.getType());
-            List<ForecastHour> forecastHours = storeManager.getStoreHour();
-            isSendMsg = isSendMsg && (forecastHours!=null);
-
-            if(needSP && isSendMsg){
-
-                showBasic(basicInfo);
-                showForecastInDay(forecastDays);
-                showAQI(aqi);
-                showSunMoon(sunMoon);
-                showForecastInHour(forecastHours);
-            }else{
-                updateWeatherInfo();
-            }
-        }
     }
 
     private void initClient(){
@@ -334,19 +321,15 @@ public class WeatherActivity extends AppCompatActivity {
                     //success
                     client.stopLocation();
 
-                    //todo:city factory
                     city = new City();
                     city.setLatitude(location.getLatitude()).setLongitude(location.getLongitude());
                     city.setDistrict(location.getDistrict()).setCityId(location.getCityCode()).setName(location.getCity()).setProvince(location.getProvince());
-//                    if(needSP)
-//                        SPUtils.saveBean(getApplicationContext(),store_pre+"City",city);
                     storeManager.storeCity(city);
 
                     updateWeatherInfo();
                 }else{
                     //fail
                     Toast.makeText(WeatherActivity.this,"错误描述:" + location.getLocationDetail(),Toast.LENGTH_LONG).show();
-//                    city = SPUtils.getBean(WeatherActivity.this, store_pre+"City", City.class);
                     city = storeManager.getCity();
                     if(city!=null){
                         updateWeatherInfo();

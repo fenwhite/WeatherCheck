@@ -76,11 +76,7 @@ public class Forecast15Activity extends AppCompatActivity implements ViewUpdate 
         store_pre = extras.getString("pre");
         String location = extras.getString("location");
 
-        store = new WeatherStore(Forecast15Activity.this,false,"");
-//        list = SPUtils.getListBean(this,
-//                store_pre+ ContentUtils.FORECAST_DAY_15,
-//                new TypeToken<List<ForecastDay>>() {
-//                }.getType());
+        store = new WeatherStore(Forecast15Activity.this,false,extras.getString("pre"));
         list = store.getStoreDay(15);
         if(list==null || list.size()==0){
             heHelper.getWeather15D(location);

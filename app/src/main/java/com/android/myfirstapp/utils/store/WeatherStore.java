@@ -35,6 +35,10 @@ public class WeatherStore extends BaseStore {
         this.pre = pre;
     }
 
+    public String getPre() {
+        return pre;
+    }
+
     public void storeBasicInfo(Object obj){
         store(ContentUtils.BASIC_WEATHER,obj);
     }

@@ -4,12 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/fresh_blue_sky">
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:layout_margin="@dimen/normal_margin">
         <RelativeLayout
+            android:id="@+id/city_manage_title"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize">
 
@@ -25,12 +25,15 @@
                 android:layout_width="@dimen/icon"
                 android:layout_height="@dimen/icon"
                 android:layout_alignParentRight="true"
-                app:srcCompat="@android:drawable/ic_menu_preferences" />
+                app:srcCompat="@android:drawable/ic_menu_preferences"
+                android:layout_below="@id/city_search"/>
         </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/normal_margin"
+            android:layout_below="@id/city_manage_title">
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/city_search"
                 android:layout_width="match_parent"
@@ -42,19 +45,22 @@
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 android:layout_below="@+id/city_search" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/city_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/normal_margin"
+                android:layout_alignTop="@id/city_search_list"/>
             <ListView
                 android:id="@+id/city_search_list"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_height="200dp"
                 android:background="@color/forecastFront"
                 android:layout_below="@+id/city_search"
                 android:nestedScrollingEnabled="true"/>
-        </RelativeLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/city_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-    </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
 
 </androidx.core.widget.NestedScrollView>

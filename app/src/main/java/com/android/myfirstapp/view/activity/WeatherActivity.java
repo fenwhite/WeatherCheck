@@ -40,6 +40,7 @@ import com.android.myfirstapp.service.AutoUpdateService;
 import com.android.myfirstapp.utils.ContentUtils;
 import com.android.myfirstapp.utils.DateUtils;
 import com.android.myfirstapp.utils.SPUtils;
+import com.android.myfirstapp.utils.store.CityStore;
 import com.android.myfirstapp.utils.store.WeatherStore;
 import com.android.myfirstapp.view.widget.CircleProgressView;
 import com.android.myfirstapp.view.widget.LabelText;
@@ -327,6 +328,9 @@ public class WeatherActivity extends AppCompatActivity {
                     storeManager.storeCity(city);
 
                     updateWeatherInfo();
+
+                    CityStore cityManager = new CityStore(WeatherActivity.this);
+                    cityManager.saveLocation(city);
                 }else{
                     //fail
                     Toast.makeText(WeatherActivity.this,"错误描述:" + location.getLocationDetail(),Toast.LENGTH_LONG).show();

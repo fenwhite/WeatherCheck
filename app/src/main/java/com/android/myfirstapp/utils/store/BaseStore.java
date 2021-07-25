@@ -16,15 +16,24 @@ public class BaseStore {
     private Context context;
     private boolean isValid = true;
 
+    private SharedPreferences.Editor editor;
+    private SharedPreferences sp;
+
     public BaseStore() {
     }
     public BaseStore(Context context) {
         this.context = context;
+
+        sp = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        editor = sp.edit();
     }
 
     public BaseStore(Context context, boolean isValid) {
         this.context = context;
         this.isValid = isValid;
+
+        sp = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+        editor = sp.edit();
     }
 
     public Context getContext() {
@@ -48,8 +57,6 @@ public class BaseStore {
      * @return True if the new values were successfully written to persistent storage.
      */
     protected boolean putString(String key, String value) {
-        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = settings.edit();
         editor.putString(key, value);
         return editor.commit();
     }
@@ -62,7 +69,7 @@ public class BaseStore {
      * @see #getString(String, String)
      */
     protected String getString(String key) {
-        return getString( key, null);
+        return getString( key, "");
     }
     /**
      * get string preferences
@@ -73,8 +80,7 @@ public class BaseStore {
      * this name that is not a string
      */
     protected String getString( String key, String defaultValue) {
-        SharedPreferences settings = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        return settings.getString(key, defaultValue);
+        return sp.getString(key, defaultValue);
     }
 
     /**
@@ -84,16 +90,14 @@ public class BaseStore {
      * @param datalist
      */
     protected <T> void putListBean(String key, List<T> datalist) {
-        SharedPreferences.Editor edit = context.getSharedPreferences(
-                PREFERENCE_NAME, Context.MODE_PRIVATE).edit();
         if (null == datalist || datalist.size() <= 0) {
             return;
         }
         Gson gson = new Gson();
         //转换成json数据，再保存
         String strJson = gson.toJson(datalist);
-        edit.putString(key, strJson);
-        edit.commit();
+        editor.putString(key, strJson);
+        editor.commit();
     }
     /**
      * 获取List<Object>
@@ -102,7 +106,6 @@ public class BaseStore {
      * @return listBean
      */
     protected <T> List<T> getListBean( String key, Type type) {
-        SharedPreferences sp = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
         List<T> dataList = new ArrayList<T>();
         String strJson = sp.getString(key, null);
         if (null == strJson) {
@@ -120,7 +123,6 @@ public class BaseStore {
      * @param obj
      */
     protected void saveBean( String key, Object obj) {
-        SharedPreferences.Editor editor = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE).edit();
         Gson gson = new Gson();
         String objString = gson.toJson(obj);
         editor.putString(key, objString).commit();
@@ -131,13 +133,12 @@ public class BaseStore {
      * @return 返回我们封装好的该实体类(obj)
      */
     protected <T> T getBean( String key, Class<T> clazz) {
-        String objString = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE).getString(key, "");
+        String objString = sp.getString(key, "");
         Gson gson = new Gson();
         return gson.fromJson(objString, clazz);
     }
 
     protected void remove(String key){
-        SharedPreferences.Editor editor = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE).edit();
         editor.remove(key).commit();
     }
 

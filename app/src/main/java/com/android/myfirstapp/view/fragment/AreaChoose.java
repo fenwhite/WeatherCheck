@@ -1,5 +1,7 @@
 package com.android.myfirstapp.view.fragment;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,15 +23,20 @@ import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.myfirstapp.R;
+import com.android.myfirstapp.adapter.CityItemAdapter;
+import com.android.myfirstapp.adapter.SearchCityItemAdapter;
 import com.android.myfirstapp.bean.City;
 import com.android.myfirstapp.utils.Utils;
+import com.android.myfirstapp.utils.store.CityStore;
 import com.android.myfirstapp.view.activity.WeatherActivity;
 import com.qweather.sdk.bean.geo.GeoBean;
 import com.qweather.sdk.view.QWeather;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -47,9 +54,13 @@ public class AreaChoose extends Fragment {
     private ListView citySearchList;
 
     private boolean isUpdateList = false;   //whether update city list view now
-    private ArrayAdapter<String> adapter;
-    private List<String> cityNameData;
-    private List<City> cityData;
+    private Activity context;
+    private SearchCityItemAdapter searchAdapter;
+    CityItemAdapter cityItemAdapter;
+
+    
+    private CityStore cityManager;
+    private List<City> searchData,cityData;
 
     private boolean progressControl = false;    //if true invisible
 
@@ -73,7 +84,16 @@ public class AreaChoose extends Fragment {
     }
 
     @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = (Activity) context;
+    }
+
+    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        // for test
+        searchData = new LinkedList<>();
+
         super.onActivityCreated(savedInstanceState);
 
         handler = new Handler(Looper.getMainLooper(),new Handler.Callback() {
@@ -81,11 +101,11 @@ public class AreaChoose extends Fragment {
             public boolean handleMessage(@NonNull Message msg) {
                 switch (msg.what){
                     case UPDATE_LIST:
-                        adapter.clear();
-                        for (City city: cityData) {
-                            adapter.add(city.getCountry()+city.getProvince()+city.getName()+city.getDistrict());
+                        searchAdapter.clear();
+                        for (City city: searchData) {
+                            searchAdapter.add(city);
                         }
-                        adapter.notifyDataSetChanged();
+                        searchAdapter.notifyDataSetChanged();
 
                         isUpdateList = false;
                         break;
@@ -107,17 +127,16 @@ public class AreaChoose extends Fragment {
             }
         });
 
-        cityNameData = new LinkedList<>();
-        adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_list_item_1,
-                cityNameData);
-        citySearchList.setAdapter(adapter);
+        searchData = new LinkedList<>();
+        searchAdapter = new SearchCityItemAdapter(context,R.layout.city_item,searchData,this);
+
+        citySearchList.setAdapter(searchAdapter);
         citySearchList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 handler.sendEmptyMessage(CLOSE_SEARCH_LIST);
-                City obj = cityData.get(position);
+                City obj = searchData.get(position);
                 Intent intent = new Intent(getContext(), WeatherActivity.class);
                 Utils.makePre(intent,getResources().getString(R.string.model_search),obj);
                 startActivity(intent);
@@ -165,9 +184,9 @@ public class AreaChoose extends Fragment {
                                 }
                                 isUpdateList = true;
 
-                                if(cityData!=null)
-                                    cityData.clear();
-                                cityData = new LinkedList<>(tmpData);
+                                if(searchData!=null)
+                                    searchData.clear();
+                                searchData = new LinkedList<>(tmpData);
                                 handler.sendEmptyMessage(UPDATE_LIST);
                             }else{
                                 Log.d(TAG, "update weather information callback error:" + geoBean.getCode().getCode() + " " + geoBean.getCode().getTxt());
@@ -188,9 +207,45 @@ public class AreaChoose extends Fragment {
             @Override
             public boolean onClose() {
                 handler.sendEmptyMessage(CLOSE_SEARCH_LIST);
-                adapter.clear();
+                searchAdapter.clear();
                 return false;
             }
         });
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        cityManager = new CityStore(context);
+        cityData = new ArrayList<>();
+        List storeCity = cityManager.getCityList();
+        if(storeCity!=null && storeCity.size()>0)
+            cityData.addAll(storeCity);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        cityList.setLayoutManager(linearLayoutManager);
+        cityItemAdapter = new CityItemAdapter(cityData);
+        cityItemAdapter.setDealer(this);
+        cityList.setAdapter(cityItemAdapter);
+    }
+
+    public boolean isCityStored(City city){
+        boolean in = false;
+        for(City obj : cityData)
+            if(obj.equals(city)){
+                in = true;
+                break;
+            }
+        return in;
+    }
+    public void addCity(City city){
+        cityData.add(city);
+        cityItemAdapter.notifyDataSetChanged();
+        cityManager.saveCityList(cityData);
+    }
+    public void deleteCity(City city){
+        cityData.remove(city);
+        cityItemAdapter.notifyDataSetChanged();
+        cityManager.saveCityList(cityData);
     }
 }

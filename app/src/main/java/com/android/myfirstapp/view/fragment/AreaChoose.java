@@ -47,7 +47,6 @@ public class AreaChoose extends Fragment {
     public static final int SHOW_SEARCH_LIST = 3;
     public static final int CLOSE_SEARCH_LIST = 4;
 
-    private ImageView setting;
     private RecyclerView cityList;
     private ProgressBar progressBar;
     private SearchView citySearch;
@@ -72,7 +71,6 @@ public class AreaChoose extends Fragment {
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_area_choose, container, false);
-        setting = view.findViewById(R.id.city_manage_setting);
         cityList = view.findViewById(R.id.city_list);
         citySearch = view.findViewById(R.id.city_search);
         progressBar = view.findViewById(R.id.search_progress_bar);
@@ -91,8 +89,6 @@ public class AreaChoose extends Fragment {
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        // for test
-        searchData = new LinkedList<>();
 
         super.onActivityCreated(savedInstanceState);
 
@@ -172,8 +168,8 @@ public class AreaChoose extends Fragment {
                                             .setCountry(city.getCountry())
                                             .setName(city.getAdm2()+"市")
                                             .setCityId(city.getId())
-                                            .setLongitude(Double.valueOf(city.getLon()))
-                                            .setLatitude(Double.valueOf(city.getLat()));
+                                            .setLongitude(Double.parseDouble(city.getLon()))
+                                            .setLatitude(Double.parseDouble(city.getLat()));
 
                                     tmpData.add(obj);
                                 }
@@ -228,6 +224,7 @@ public class AreaChoose extends Fragment {
         cityItemAdapter.setDealer(this);
         cityList.setAdapter(cityItemAdapter);
     }
+
 
     public boolean isCityStored(City city){
         boolean in = false;

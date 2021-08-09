@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/fresh_blue_sky">
@@ -19,14 +20,6 @@
                 android:layout_centerHorizontal="true"
                 android:textSize="@dimen/title"
                 android:text="@string/city_manage"/>
-
-            <ImageView
-                android:id="@+id/city_manage_setting"
-                android:layout_width="@dimen/icon"
-                android:layout_height="@dimen/icon"
-                android:layout_alignParentRight="true"
-                app:srcCompat="@android:drawable/ic_menu_preferences"
-                android:layout_below="@id/city_search"/>
         </RelativeLayout>
 
         <RelativeLayout
@@ -55,12 +48,11 @@
             <ListView
                 android:id="@+id/city_search_list"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="wrap_content"
                 android:background="@color/forecastFront"
-                android:layout_below="@+id/city_search"
-                android:nestedScrollingEnabled="true"/>
+                android:layout_below="@+id/city_search"/>
 
         </RelativeLayout>
     </RelativeLayout>
 
-</androidx.core.widget.NestedScrollView>
+</LinearLayout>

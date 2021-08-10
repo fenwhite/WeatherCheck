@@ -156,6 +156,16 @@ public class City implements Parcelable {
 
     @Override
     public String toString() {
+        if(province.equals(name)){
+            if(name.substring(0,name.length()-1).equals(district.substring(0,district.length()-1))){
+                return country+name;
+            }
+            return country+province+district;
+        }
+
+        if(name.substring(0,name.length()-1).equals(district.substring(0,district.length()-1))){
+            return country+province+name;
+        }
         return country+province+name+district;
     }
 }

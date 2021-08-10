@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,7 +44,7 @@ import java.util.List;
 public class AreaChoose extends Fragment {
     private static final String TAG = "AreaChoose";
     public static final int CONTROL_PROGRESS = 1;
-    public static final int UPDATE_LIST = 2;
+    public static final int SHOW_LIST = 2;
     public static final int SHOW_SEARCH_LIST = 3;
     public static final int CLOSE_SEARCH_LIST = 4;
 
@@ -52,7 +53,6 @@ public class AreaChoose extends Fragment {
     private SearchView citySearch;
     private ListView citySearchList;
 
-    private boolean isUpdateList = false;   //whether update city list view now
     private Activity context;
     private SearchCityItemAdapter searchAdapter;
     CityItemAdapter cityItemAdapter;
@@ -77,7 +77,7 @@ public class AreaChoose extends Fragment {
         citySearchList = view.findViewById(R.id.city_search_list);
 
         progressBar.setVisibility(View.INVISIBLE);
-        citySearchList.setVisibility(View.INVISIBLE);
+//        citySearchList.setVisibility(View.INVISIBLE);
         return view;
     }
 
@@ -96,21 +96,21 @@ public class AreaChoose extends Fragment {
             @Override
             public boolean handleMessage(@NonNull Message msg) {
                 switch (msg.what){
-                    case UPDATE_LIST:
-                        searchAdapter.clear();
-                        for (City city: searchData) {
-                            searchAdapter.add(city);
-                        }
-                        searchAdapter.notifyDataSetChanged();
+                    case SHOW_LIST:
+                        //todo why?
+//                        synchronized (this) {
+//                            for (City city : searchData) {
+//                                searchAdapter.add(city);
+//                            }
+//                            searchAdapter.notifyDataSetChanged();
+//                        }
 
-                        isUpdateList = false;
+                        searchAdapter.clear();
+                        searchAdapter.addAll(searchData);
+                        searchAdapter.notifyDataSetChanged();
                         break;
                     case CONTROL_PROGRESS:
-                        if(!progressControl)
-                            progressBar.setVisibility(View.INVISIBLE);
-                        else{
-                            progressBar.setVisibility(View.VISIBLE);
-                        }
+                        progressBar.setVisibility(progressControl? View.VISIBLE:View.INVISIBLE);
                         break;
                     case SHOW_SEARCH_LIST:
                         citySearchList.setVisibility(View.VISIBLE);
@@ -125,19 +125,28 @@ public class AreaChoose extends Fragment {
 
         searchData = new LinkedList<>();
         searchAdapter = new SearchCityItemAdapter(context,R.layout.city_item,searchData,this);
-
         citySearchList.setAdapter(searchAdapter);
         citySearchList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                handler.sendEmptyMessage(CLOSE_SEARCH_LIST);
                 City obj = searchData.get(position);
                 Intent intent = new Intent(getContext(), WeatherActivity.class);
                 Utils.makePre(intent,getResources().getString(R.string.model_search),obj);
                 startActivity(intent);
             }
         });
+
+        cityManager = new CityStore(context);
+        cityData = new ArrayList<>();
+        List storeCity = cityManager.getCityList();
+        if(storeCity!=null && storeCity.size()>0)
+            cityData.addAll(storeCity);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        cityList.setLayoutManager(linearLayoutManager);
+        cityItemAdapter = new CityItemAdapter(cityData);
+        cityItemAdapter.setDealer(this);
+        cityList.setAdapter(cityItemAdapter);
 
         citySearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -156,7 +165,6 @@ public class AreaChoose extends Fragment {
                     public void onSuccess(GeoBean geoBean) {
                         progressControl = false;
                         handler.sendEmptyMessage(CONTROL_PROGRESS);
-                        handler.sendEmptyMessage(SHOW_SEARCH_LIST);
                         if(geoBean!=null){
                             if("200".equals(geoBean.getCode().getCode())){
                                 List<City> tmpData = new LinkedList<>();
@@ -174,16 +182,14 @@ public class AreaChoose extends Fragment {
                                     tmpData.add(obj);
                                 }
 
-                                // lock
-                                while(isUpdateList) {
-                                    ;
-                                }
-                                isUpdateList = true;
+                                //todo why get ConcurrentModificationException???
+//                                synchronized (this) {
+//                                    searchData.clear();
+//                                    searchData.addAll(tmpData);
+//                                }
+                                searchData = tmpData;
 
-                                if(searchData!=null)
-                                    searchData.clear();
-                                searchData = new LinkedList<>(tmpData);
-                                handler.sendEmptyMessage(UPDATE_LIST);
+                                handler.sendEmptyMessage(SHOW_LIST);
                             }else{
                                 Log.d(TAG, "update weather information callback error:" + geoBean.getCode().getCode() + " " + geoBean.getCode().getTxt());
                                 Toast.makeText(getContext(),geoBean.getCode().getTxt(),Toast.LENGTH_SHORT).show();
@@ -196,13 +202,15 @@ public class AreaChoose extends Fragment {
 
             @Override
             public boolean onQueryTextChange(String newText) {
+//                if(TextUtils.isEmpty(newText)){
+//                    searchAdapter.clear();
+//                }
                 return false;
             }
         });
         citySearch.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                handler.sendEmptyMessage(CLOSE_SEARCH_LIST);
                 searchAdapter.clear();
                 return false;
             }
@@ -213,16 +221,6 @@ public class AreaChoose extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        cityManager = new CityStore(context);
-        cityData = new ArrayList<>();
-        List storeCity = cityManager.getCityList();
-        if(storeCity!=null && storeCity.size()>0)
-            cityData.addAll(storeCity);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
-        cityList.setLayoutManager(linearLayoutManager);
-        cityItemAdapter = new CityItemAdapter(cityData);
-        cityItemAdapter.setDealer(this);
-        cityList.setAdapter(cityItemAdapter);
     }
 
 
